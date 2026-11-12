@@ -1,0 +1,14 @@
+# photos, crops and features never go into the repository (dataset licences)
+datasets/
+data/
+weights/*.pth
+
+# Python, editors, local environments
+__pycache__/
+*.pyc
+.idea/
+.vscode/
+.venv/
+venv/
+.ipynb_checkpoints/
+.DS_Store

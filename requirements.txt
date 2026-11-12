@@ -1,0 +1,9 @@
+# Python 3.13. Install with:  pip install -r requirements.txt
+numpy==2.5.3
+pandas==3.0.5
+scipy==1.18.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+Pillow==12.3.0
+torch==2.7.1          # only steps 2-3 (crops and features) need PyTorch; a CPU is enough
+torchvision==0.22.1
