@@ -64,9 +64,37 @@ Run every script from the project folder, in this order. Each one prints a short
 | 2 | `python src/02_crop_photos.py` | crops each photo to its retina and resizes it to 224 x 224 |
 | 3 | `python src/03_extract_features.py` | computes the 2,048 ResNet-50 features of each crop |
 | 4 | `python src/04_make_folds.py` | finds copies of the same photo and splits APTOS into 10 folds |
+| 5 | `python src/05_compare_models.py` | compares the course's models on the features with nested cross-validation (about 15 minutes) |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
-Still to come: comparing the course's models on the features, the referral rule and its baselines,
-recalibration at a new clinic, the effect of fewer sick eyes on the workload, and the error and
-robustness analyses.
+## Results so far
+
+**Step 5: which model reads the features best?** 3,662 APTOS photos, 10-fold nested cross-validation;
+full table with 95 % intervals in [`results/models.csv`](results/models.csv).
+
+| Model | AUROC referable | AUROC urgent | Accuracy |
+|---|---|---|---|
+| Logistic regression | 0.972 | 0.917 | 0.825 |
+| LDA | 0.970 | 0.919 | 0.816 |
+| SVM (RBF) | 0.970 | 0.910 | 0.824 |
+| MLP | 0.966 | 0.875 | 0.790 |
+| Gradient boosting | 0.963 | 0.898 | 0.799 |
+| k-nearest neighbours | 0.957 | 0.878 | 0.774 |
+| Random forest | 0.953 | 0.891 | 0.777 |
+| AdaBoost | 0.944 | 0.873 | 0.763 |
+| QDA | 0.941 | 0.881 | 0.775 |
+| B2: photo size, brightness, sharpness only | 0.921 | 0.782 | 0.725 |
+| Decision tree | 0.908 | 0.821 | 0.721 |
+| Naive Bayes | 0.839 | 0.790 | 0.645 |
+| B1: class shares | 0.494 | 0.492 | 0.594 |
+
+Logistic regression, LDA and the SVM are within each other's intervals; we carry logistic regression
+forward because it is the simplest. B2 never sees the retina and still reaches 0.921: in APTOS, the
+camera and the image quality already say a lot about the grade, which we look at again in the error
+analysis.
+
+## Still to come
+
+The referral rule and its baselines, recalibration at a new clinic, the effect of fewer sick eyes on the
+workload, and the error and robustness analyses.
