@@ -1,0 +1,7 @@
+clinic,rule,true class in the set %,no referral in its set %,routine in its set %,urgent in its set %,referable eyes sent home % (target <= 10),urgent eyes referred urgently % (target >= 90),to a grader %,"referrals per 1,000 eyes"
+APTOS (home),B4 one conformal threshold,90.3,95.9,88.3,69.7,6.6,69.7,8.5,357.7
+APTOS (home),C1 one threshold per class (ours),90.6,90.3,90.9,91.4,4.4,91.4,1.8,446.2
+IDRiD (new clinic),B4 one conformal threshold,76.8 (70.3-82.8),97.0 (95.9-98.4),70.7 (60.7-76.2),58.3 (49.0-74.8),16.9 (13.9-22.3),58.3 (49.0-74.8),20.6 (11.8-27.7),390.9 (376.0-424.4)
+IDRiD (new clinic),C1 one threshold per class (ours),82.2 (76.7-87.2),84.9 (79.8-91.7),74.6 (69.0-82.7),87.0 (76.1-94.8),13.6 (9.3-17.3),87.0 (76.1-94.8),5.6 (1.2-9.3),577.5 (507.8-612.4)
+Messidor-2 (new clinic),B4 one conformal threshold,75.3 (74.8-76.0),99.9 (99.8-100.0),1.5 (0.3-2.9),19.4 (13.6-25.5),91.8 (89.3-93.7),19.4 (13.6-25.5),0.7 (0.2-1.1),17.4 (10.3-24.7)
+Messidor-2 (new clinic),C1 one threshold per class (ours),76.3 (75.5-77.2),99.5 (99.0-99.9),1.9 (0.9-4.0),38.9 (25.5-57.3),87.1 (79.6-90.8),38.9 (25.5-57.3),0.1 (0.0-0.3),44.1 (26.4-86.0)

@@ -66,6 +66,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 4 | `python src/04_make_folds.py` | finds copies of the same photo and splits APTOS into 10 folds |
 | 5 | `python src/05_compare_models.py` | compares the course's models on the features with nested cross-validation (about 15 minutes) |
 | 6 | `python src/06_referral_rule.py` | tests the referral rule (`src/conformal.py`) on APTOS against simpler rules |
+| 7 | `python src/07_new_clinics.py` | applies the APTOS model and thresholds, unchanged, to IDRiD and Messidor-2 |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -111,7 +112,28 @@ threshold for all classes (B4), the true class is in the set for 95.9 % of healt
 of urgent eyes; with one threshold per class the three classes get 90.3 %, 90.9 % and 91.4 %. The price
 of C1 is more referrals: 446 per 1,000 eyes, because 68 % of grade-2 eyes are referred urgently.
 
+**Step 7: does the promise hold at a new clinic?** The same 10 models and thresholds as in step 6,
+applied unchanged to all photos of IDRiD and Messidor-2 (average of the 10 rounds); full table with the
+lowest and highest round in [`results/new_clinics.csv`](results/new_clinics.csv).
+
+| Clinic | Rule | True class in the set (promised: 90 %) | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | Referrals per 1,000 |
+|---|---|---|---|---|---|
+| APTOS (home) | B4 one conformal threshold | 90.3 % | 6.6 % | 69.7 % | 358 |
+| APTOS (home) | C1 one threshold per class | 90.6 % | 4.4 % | 91.4 % | 446 |
+| IDRiD | B4 one conformal threshold | 76.8 % | 16.8 % | 58.2 % | 391 |
+| IDRiD | C1 one threshold per class | 82.2 % | 13.6 % | 87.0 % | 578 |
+| Messidor-2 | B4 one conformal threshold | 75.3 % | 91.8 % | 19.2 % | 17 |
+| Messidor-2 | C1 one threshold per class | 76.3 % | 87.1 % | 38.8 % | 44 |
+
+No. The 90 % of conformal prediction holds only when the new photos are like the calibration photos, and
+at a new clinic they are not. At IDRiD both rules slip below their targets. At Messidor-2 the rule
+fails completely: the model gives almost every photo a high probability of "no referral" (0.96 on
+average even for grade-2 eyes), so 87 % of the eyes that need a referral are sent home. The model's
+ranking of referable eyes drops from an AUROC of 0.972 at APTOS to 0.910 at IDRiD and 0.684 at
+Messidor-2. Thresholds set at one clinic cannot be carried to another; the next step sets them again
+with a few photos of the new clinic.
+
 ## Still to come
 
-Recalibration at a new clinic, the effect of fewer sick eyes on the workload, and the error and
-robustness analyses.
+Recalibration at a new clinic with a few local photos, the effect of fewer sick eyes on the workload,
+and the error and robustness analyses.
