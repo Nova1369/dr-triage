@@ -1,0 +1,8 @@
+rule,referable eyes sent home % (target <= 10),urgent eyes referred urgently % (target >= 90),healthy eyes sent home %,to a grader %,"referrals per 1,000 eyes",meets both targets
+Most likely class,11.7 (10.0-13.4),51.0 (46.8-55.4),93.4,0.0,398,no
+B0 send everyone home,100.0 (100.0-100.0),0.0 (0.0-0.0),100.0,0.0,0,no
+B0 refer everyone urgently,0.0 (0.0-0.0),100.0 (100.0-100.0),0.0,0.0,1000,yes
+B3 tuned cut-offs,9.0 (7.6-10.5),87.9 (85.1-90.9),91.0,0.0,423,no
+B4 one conformal threshold,6.6 (5.3-7.9),69.7 (65.6-73.6),89.2,8.5,358,no
+B5 unsure band,7.9 (6.6-9.3),39.3 (35.0-43.7),90.8,14.3,286,no
+C1 one threshold per class (ours),4.4 (3.4-5.5),91.4 (88.9-93.8),87.2,1.8,446,yes

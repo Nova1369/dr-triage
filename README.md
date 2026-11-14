@@ -65,6 +65,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 3 | `python src/03_extract_features.py` | computes the 2,048 ResNet-50 features of each crop |
 | 4 | `python src/04_make_folds.py` | finds copies of the same photo and splits APTOS into 10 folds |
 | 5 | `python src/05_compare_models.py` | compares the course's models on the features with nested cross-validation (about 15 minutes) |
+| 6 | `python src/06_referral_rule.py` | tests the referral rule (`src/conformal.py`) on APTOS against simpler rules |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -94,7 +95,23 @@ forward because it is the simplest. B2 never sees the retina and still reaches 0
 camera and the image quality already say a lot about the grade, which we look at again in the error
 analysis.
 
+**Step 6: does the referral rule keep its promise?** Every APTOS photo is decided once, by a model and
+thresholds that never saw it; full table in [`results/referral_rule.csv`](results/referral_rule.csv).
+
+| Rule | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | Healthy eyes sent home | To a grader | Referrals per 1,000 |
+|---|---|---|---|---|---|
+| Most likely class | 11.7 % | 51.0 % | 93.4 % | 0 % | 398 |
+| B3 tuned cut-offs | 9.0 % | 87.9 % | 91.0 % | 0 % | 423 |
+| B4 one conformal threshold | 6.6 % | 69.7 % | 89.2 % | 8.5 % | 358 |
+| B5 unsure band | 7.9 % | 39.3 % | 90.8 % | 14.3 % | 286 |
+| **C1 one threshold per class (ours)** | **4.4 %** | **91.4 %** | 87.2 % | 1.8 % | 446 |
+
+Only C1 meets both targets (apart from the trivial rule of referring everyone urgently). With one
+threshold for all classes (B4), the true class is in the set for 95.9 % of healthy eyes but only 69.7 %
+of urgent eyes; with one threshold per class the three classes get 90.3 %, 90.9 % and 91.4 %. The price
+of C1 is more referrals: 446 per 1,000 eyes, because 68 % of grade-2 eyes are referred urgently.
+
 ## Still to come
 
-The referral rule and its baselines, recalibration at a new clinic, the effect of fewer sick eyes on the
-workload, and the error and robustness analyses.
+Recalibration at a new clinic, the effect of fewer sick eyes on the workload, and the error and
+robustness analyses.
