@@ -67,6 +67,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 5 | `python src/05_compare_models.py` | compares the course's models on the features with nested cross-validation (about 15 minutes) |
 | 6 | `python src/06_referral_rule.py` | tests the referral rule (`src/conformal.py`) on APTOS against simpler rules |
 | 7 | `python src/07_new_clinics.py` | applies the APTOS model and thresholds, unchanged, to IDRiD and Messidor-2 |
+| 8 | `python src/08_recalibration.py` | sets the thresholds again with a few photos of the new clinic, and compares that with retraining (about 8 minutes) |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -133,7 +134,34 @@ ranking of referable eyes drops from an AUROC of 0.972 at APTOS to 0.910 at IDRi
 Messidor-2. Thresholds set at one clinic cannot be carried to another; the next step sets them again
 with a few photos of the new clinic.
 
+**Step 8: can a few local photos repair it?** The new clinic grades n of its own photos. We compare four
+uses of them, each tested on the clinic's other photos (average of 50 runs); all sizes n = 50 to 300 and
+the spread of the runs are in [`results/recalibration.csv`](results/recalibration.csv). With n = 300:
+
+| Clinic | Rule | True class in the set (promised: 90 %) | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | To a grader | Referrals per 1,000 |
+|---|---|---|---|---|---|---|
+| IDRiD | C1 nothing changed | 82.1 % | 13.6 % | 87.1 % | 5.5 % | 578 |
+| IDRiD | **C2 thresholds set again on local photos (ours)** | **90.5 %** | **5.7 %** | **90.3 %** | 20.8 % | 553 |
+| IDRiD | B6 model retrained with the local photos | 82.4 % | 6.8 % | 96.6 % | 3.3 % | 690 |
+| IDRiD | B7 half to retrain, half to set thresholds | 91.4 % | 4.8 % | 91.6 % | 20.7 % | 566 |
+| Messidor-2 | C1 nothing changed | 76.2 % | 87.1 % | 38.4 % | 0.2 % | 44 |
+| Messidor-2 | **C2 thresholds set again on local photos (ours)** | **90.2 %** | **6.4 %** | **92.2 %** | 45.4 % | 411 |
+| Messidor-2 | B6 model retrained with the local photos | 80.1 % | 46.8 % | 71.6 % | 8.2 % | 202 |
+| Messidor-2 | B7 half to retrain, half to set thresholds | 90.8 % | 2.8 % | 95.6 % | 19.3 % | 740 |
+
+Yes. Setting the thresholds again on local photos brings the 90 % back at both clinics and for every n
+we tried, and both targets are met on average, without touching the model. Retraining alone (B6) does
+not: 300 local photos among 2,900 APTOS photos barely move the model, and at Messidor-2 it still sends
+home 47 % of the eyes that need a referral. B7 also keeps the promise, because it too sets its
+thresholds on local photos, but it needs a new model for every clinic.
+
+The guarantee does not make the model better, and the cost shows in the workload. At Messidor-2, where
+the model ranks eyes poorly, the rule stays safe by being unsure: 45 % of the eyes go to a human grader.
+With very few local photos it is safe but useless: among 50 Messidor-2 photos there are about 3 urgent
+eyes, too few to set the urgent threshold, so every eye is referred urgently. About 200 to 300 local
+photos are needed there before the rule starts to save work. The numbers are averages: a single clinic's
+draw can land a few points on either side of the targets (see the ranges in the CSV).
+
 ## Still to come
 
-Recalibration at a new clinic with a few local photos, the effect of fewer sick eyes on the workload,
-and the error and robustness analyses.
+The effect of fewer sick eyes on the workload, and the error and robustness analyses.
