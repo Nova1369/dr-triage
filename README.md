@@ -68,6 +68,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 6 | `python src/06_referral_rule.py` | tests the referral rule (`src/conformal.py`) on APTOS against simpler rules |
 | 7 | `python src/07_new_clinics.py` | applies the APTOS model and thresholds, unchanged, to IDRiD and Messidor-2 |
 | 8 | `python src/08_recalibration.py` | sets the thresholds again with a few photos of the new clinic, and compares that with retraining (about 8 minutes) |
+| 9 | `python src/09_fewer_sick_eyes.py` | tests the rule at clinics with fewer sick eyes, and forecasts the number of referrals from photos without labels |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -162,6 +163,47 @@ eyes, too few to set the urgent threshold, so every eye is referred urgently. Ab
 photos are needed there before the rule starts to save work. The numbers are averages: a single clinic's
 draw can land a few points on either side of the targets (see the ranges in the CSV).
 
+**Step 9: what if the clinic has fewer sick eyes?** In APTOS 41 % of the eyes need a referral; in a
+screening programme it is nearer 5 to 25 %. We draw clinics of 1,000 eyes with fewer referable eyes from
+APTOS (average of 200 clinics); the spread is in [`results/fewer_sick_eyes.csv`](results/fewer_sick_eyes.csv).
+
+| Referable eyes at the clinic | C1: referable eyes sent home (target at most 10 %) | C1: urgent eyes referred urgently (target at least 90 %) | B4: true class in the set | B4: urgent eyes with "urgent" in the set | C1: referrals per 1,000 | C1: referrals that were needed |
+|---|---|---|---|---|---|---|
+| 5 % | 4.0 % | 91.5 % | 95.2 % | 70.1 % | 151 | 31.1 % |
+| 12.5 % | 4.5 % | 91.2 % | 94.2 % | 68.4 % | 214 | 55.0 % |
+| 25 % | 4.6 % | 91.4 % | 92.5 % | 69.7 % | 316 | 74.2 % |
+| 40.6 % (APTOS) | 4.4 % | 91.6 % | 90.3 % | 69.7 % | 446 | 85.4 % |
+
+The promise does not move. Each class has its own threshold, set only on eyes of that class, so it does
+not matter how many of them a clinic has. Standard conformal prediction (B4) looks better and better on
+paper as sick eyes get rarer (95.2 % at 5 %), while it still covers only 70 % of the urgent eyes: one
+promise for all eyes together is mostly a promise about the healthy ones. What does move is the
+workload. At 5 % referable eyes C1 makes 151 referrals per 1,000 eyes instead of 446, and only 31 % of
+them were needed.
+
+A clinic should know that workload in advance. The forecast is 1000 x the sum over the classes of
+(share of the class) x (how often the rule refers that class, measured on APTOS). The shares come from
+APTOS (B8), from an estimate on the clinic's photos without labels (C3, ours; Saerens et al., 2002), or
+from the truth (B9, not known in practice). Referrals per 1,000 eyes, and in brackets how far the forecast
+is off on average; full table in [`results/workload_forecast.csv`](results/workload_forecast.csv).
+
+| Clinic | Referable eyes: true | Referable eyes: estimated without labels | Referrals observed | Forecast B8 (APTOS shares) | Forecast C3 (estimated shares, ours) | Forecast B9 (true shares) |
+|---|---|---|---|---|---|---|
+| APTOS with 5 % referable | 5.0 % | 5.8 % | 151 | 445 (294) | 157 (11) | 151 (11) |
+| APTOS with 12.5 % referable | 12.5 % | 13.0 % | 214 | 446 (232) | 218 (9) | 213 (11) |
+| APTOS with 25 % referable | 25.0 % | 25.1 % | 316 | 447 (132) | 319 (7) | 318 (10) |
+| IDRiD | 62.6 % | 60.9 % | 578 | 446 (131) | 612 (44) | 632 (55) |
+| Messidor-2 | 26.2 % | 0.3 % | 44 | 446 (402) | 113 (69) | 326 (282) |
+
+When only the share of sick eyes changes, the forecast from photos without labels is as good as with
+the true shares (off by about 10 referrals per 1,000), and without a correction it is off by up to 294.
+At the real clinics more than the shares has changed. At IDRiD the estimate is still close. At Messidor-2
+it says 0.3 % referable eyes when the truth is 26.2 %, because the model calls almost every photo
+healthy (step 7); even the true shares give a wrong forecast there, because the rule no longer refers
+each class as often as it did at APTOS. The estimate without labels is safe to use only after the
+model has been checked on some labelled local photos, and those photos (step 8) then give the shares
+directly.
+
 ## Still to come
 
-The effect of fewer sick eyes on the workload, and the error and robustness analyses.
+The error and robustness analyses.
