@@ -69,6 +69,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 7 | `python src/07_new_clinics.py` | applies the APTOS model and thresholds, unchanged, to IDRiD and Messidor-2 |
 | 8 | `python src/08_recalibration.py` | sets the thresholds again with a few photos of the new clinic, and compares that with retraining (about 8 minutes) |
 | 9 | `python src/09_fewer_sick_eyes.py` | tests the rule at clinics with fewer sick eyes, and forecasts the number of referrals from photos without labels |
+| 10 | `python src/10_error_analysis.py` | counts the rule's errors by DR grade, camera and sharpness, and lists every missed urgent eye |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -204,6 +205,37 @@ each class as often as it did at APTOS. The estimate without labels is safe to u
 model has been checked on some labelled local photos, and those photos (step 8) then give the shares
 directly.
 
+**Step 10: which eyes does the rule get wrong?** The decisions of step 6 on APTOS, counted group by group,
+with 95 % intervals because some groups are small. APTOS does not name the camera; the photo size stands
+for it, and cameras are grouped by what they photographed. Every camera on its own is in
+[`results/errors_by_group.csv`](results/errors_by_group.csv).
+
+| Group | Referable eyes | Sent home (target at most 10 %) | Urgent eyes | Not referred urgently (target at most 10 %) |
+|---|---|---|---|---|
+| All eyes | 1,487 | 4.4 % (3.5-5.6) | 488 | 8.6 % (6.4-11.4) |
+| Grade 2 | 999 | 5.2 % (4.0-6.8) | | |
+| Grade 3 | 193 | 1.6 % (0.5-4.5) | 193 | 7.3 % (4.4-11.8) |
+| Grade 4 | 295 | 3.7 % (2.1-6.6) | 295 | 9.5 % (6.6-13.4) |
+| Cameras with mostly healthy eyes | 55 | **52.7 % (39.8-65.3)** | 15 | 20.0 % (7.0-45.2) |
+| Cameras with mixed eyes | 262 | 3.8 % (2.1-6.9) | 97 | 11.3 % (6.5-19.2) |
+| Cameras with mostly sick eyes | 1,170 | 2.3 % (1.6-3.3) | 376 | 7.4 % (5.2-10.6) |
+| Blurriest third | 583 | 4.6 % (3.2-6.7) | 216 | 8.8 % (5.7-13.3) |
+| Middle third | 454 | 6.4 % (4.5-9.0) | 146 | 7.5 % (4.3-13.0) |
+| Sharpest third | 450 | 2.2 % (1.2-4.0) | 126 | 9.5 % (5.5-15.9) |
+
+The targets hold for each grade and each sharpness third, but not for each camera. On the cameras that
+photographed mostly healthy eyes (in practice one camera, 1050 x 1050, with 974 photos of which 54 need
+a referral), more than half of the eyes that need a referral are sent home. The model has learnt the
+camera: a grade-2 eye gets an average P(no referral) of 0.74 on these cameras and 0.15 to 0.19 on the
+others. This is the shortcut that B2 pointed to in step 5, and it is hidden in the overall 4.4 % because
+these cameras hold only 55 of the 1,487 referable eyes. The guarantee of conformal prediction is an
+average over the eyes of a class; it says nothing about a sub-group such as one camera.
+
+The 42 missed urgent eyes (of 488) are listed in [`results/missed_urgent_eyes.csv`](results/missed_urgent_eyes.csv):
+25 got a routine referral, 14 were sent home and 3 went to a grader. They are confident mistakes, not
+near misses: their median P(urgent) is 0.043, against 0.538 for the urgent eyes that were caught, so a
+slightly different threshold would not have caught them.
+
 ## Still to come
 
-The error and robustness analyses.
+The robustness analysis (blur, dark photos, JPEG) and the stricter 5 % target.
