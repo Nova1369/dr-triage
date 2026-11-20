@@ -1,0 +1,13 @@
+photos from,decision by,class,sensitivity %,specificity %,PPV %
+APTOS,most likely class,no referral,93.4,88.3,92.1
+APTOS,most likely class,routine,73.3,87.3,68.4
+APTOS,most likely class,urgent,51.0,95.7,64.3
+IDRiD,most likely class,no referral,94.8,72.4,67.3
+IDRiD,most likely class,routine,50.0,73.3,47.5
+IDRiD,most likely class,urgent,35.5,96.7,82.1
+Messidor-2,most likely class,no referral,99.8,5.5,74.8
+Messidor-2,most likely class,routine,0.0,99.3,0.0
+Messidor-2,most likely class,urgent,12.7,99.8,77.8
+APTOS,C1 (eyes sent to a grader count as not given any class),no referral,87.2,95.6,96.6
+APTOS,C1 (eyes sent to a grader count as not given any class),routine,24.3,95.9,69.2
+APTOS,C1 (eyes sent to a grader count as not given any class),urgent,91.4,73.6,34.8

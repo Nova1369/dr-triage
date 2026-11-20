@@ -70,6 +70,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 8 | `python src/08_recalibration.py` | sets the thresholds again with a few photos of the new clinic, and compares that with retraining (about 8 minutes) |
 | 9 | `python src/09_fewer_sick_eyes.py` | tests the rule at clinics with fewer sick eyes, and forecasts the number of referrals from photos without labels |
 | 10 | `python src/10_error_analysis.py` | counts the rule's errors by DR grade, camera and sharpness, and lists every missed urgent eye |
+| 11 | `python src/11_more_scores.py` | adds the other scores of the proposal: weighted kappa, Brier score, calibration, and sensitivity, specificity and PPV per class |
 
 Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
 
@@ -135,6 +136,10 @@ average even for grade-2 eyes), so 87 % of the eyes that need a referral are sen
 ranking of referable eyes drops from an AUROC of 0.972 at APTOS to 0.910 at IDRiD and 0.684 at
 Messidor-2. Thresholds set at one clinic cannot be carried to another; the next step sets them again
 with a few photos of the new clinic.
+
+The IDRiD row of B4 is also our reproduction of Hasan et al. (2026), experiment E0 of the proposal: they
+report that standard conformal prediction trained on APTOS covers 66 to 77 % of IDRiD photos at a 90 %
+target, and we measure 76.8 % with a different model.
 
 **Step 8: can a few local photos repair it?** The new clinic grades n of its own photos. We compare four
 uses of them, each tested on the clinic's other photos (average of 50 runs); all sizes n = 50 to 300 and
@@ -236,6 +241,39 @@ The 42 missed urgent eyes (of 488) are listed in [`results/missed_urgent_eyes.cs
 near misses: their median P(urgent) is 0.043, against 0.538 for the urgent eyes that were caught, so a
 slightly different threshold would not have caught them.
 
+**Step 11: the other scores of the proposal.** APTOS photos are predicted by a model that never saw them
+(the folds of step 6), IDRiD and Messidor-2 by one model trained on all of APTOS. Intervals are in
+[`results/more_scores.csv`](results/more_scores.csv).
+
+| Photos from | Accuracy | Quadratic weighted kappa | Brier score | ECE of P(referable) | ECE of P(urgent) |
+|---|---|---|---|---|---|
+| APTOS, B1 class shares only | 0.594 | 0.000 | 0.555 | 0.000 | 0.000 |
+| APTOS | 0.822 | 0.781 | 0.247 | 0.014 | 0.016 |
+| IDRiD | 0.624 | 0.627 | 0.503 | 0.122 | 0.133 |
+| Messidor-2 | 0.744 | 0.150 | 0.466 | 0.219 | 0.047 |
+
+![Calibration of the model at the three clinics](results/calibration.png)
+
+At APTOS the probabilities can be read as risks: of the eyes given P(referable) near 0.4, about 40 %
+are referable (ECE 0.014). At the new clinics they cannot. Both curves lie above the diagonal, so the
+model gives sick eyes too low a risk, most of all at Messidor-2. Messidor-2 also shows why accuracy
+alone misleads: 74 % of its photos are classified correctly because 74 % of its eyes are healthy and the
+model calls nearly every eye healthy. The kappa of 0.150 says the agreement is barely better than
+chance. (B1 has a calibration error of zero and is useless: calibration and ranking are different things.)
+
+Sensitivity, specificity and PPV of each class, in percent ([`results/per_class.csv`](results/per_class.csv)):
+
+| Photos from | Decision by | No referral | Routine | Urgent |
+|---|---|---|---|---|
+| APTOS | most likely class | 93.4 / 88.3 / 92.1 | 73.1 / 87.3 / 68.3 | 51.0 / 95.6 / 64.2 |
+| APTOS | C1 (ours) | 87.2 / 95.6 / 96.6 | 24.2 / 95.9 / 69.1 | 91.4 / 73.6 / 34.7 |
+| IDRiD | most likely class | 94.8 / 72.4 / 67.3 | 50.0 / 73.3 / 47.5 | 35.5 / 96.7 / 82.1 |
+| Messidor-2 | most likely class | 99.8 / 5.5 / 74.8 | 0.0 / 99.3 / 0.0 | 12.7 / 99.8 / 77.8 |
+
+The row of C1 shows what the guarantee buys and what it costs. The sensitivity for urgent eyes rises
+from 51.0 % to 91.4 %, and a "no referral" from C1 is right 96.6 % of the time. In exchange only 34.7 %
+of its urgent referrals are urgent eyes, because most grade-2 eyes are referred urgently to be safe.
+
 ## Still to come
 
-The robustness analysis (blur, dark photos, JPEG) and the stricter 5 % target.
+The robustness analysis (blur, dark photos, JPEG), the ablations and the stricter 5 % target.
