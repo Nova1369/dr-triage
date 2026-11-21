@@ -71,8 +71,10 @@ Run every script from the project folder, in this order. Each one prints a short
 | 9 | `python src/09_fewer_sick_eyes.py` | tests the rule at clinics with fewer sick eyes, and forecasts the number of referrals from photos without labels |
 | 10 | `python src/10_error_analysis.py` | counts the rule's errors by DR grade, camera and sharpness, and lists every missed urgent eye |
 | 11 | `python src/11_more_scores.py` | adds the other scores of the proposal: weighted kappa, Brier score, calibration, and sensitivity, specificity and PPV per class |
+| 12 | `python src/12_change_photos.py` | blurs, darkens and compresses the APTOS crops and computes their features (about 10 minutes) |
+| 13 | `python src/13_robustness.py` | tests the rule on the worse photos, with parts of the pipeline changed, and with other targets (about 3 minutes) |
 
-Steps 2 and 3 take a few minutes each on a laptop and can be stopped and restarted.
+Steps 2, 3 and 12 can be stopped and restarted; steps 2 and 3 take a few minutes each on a laptop.
 
 ## Results so far
 
@@ -274,6 +276,62 @@ The row of C1 shows what the guarantee buys and what it costs. The sensitivity f
 from 51.0 % to 91.4 %, and a "no referral" from C1 is right 96.6 % of the time. In exchange only 34.7 %
 of its urgent referrals are urgent eyes, because most grade-2 eyes are referred urgently to be safe.
 
+**Step 13: worse photos, a simpler pipeline, a stricter target.** All on APTOS, tested as in step 6.
+
+*Worse photos.* The model and the thresholds come from the original photos; the photos to decide are
+blurred (radius 1.3 pixels), at half brightness, or saved as JPEG at quality 20. "Recalibrated" sets the
+thresholds on calibration photos that are worse in the same way. Full table in
+[`results/robustness.csv`](results/robustness.csv).
+
+| Photos to decide | Thresholds | AUROC referable | True class in the set (promised 90 %) | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | Healthy eyes sent home | To a grader |
+|---|---|---|---|---|---|---|---|
+| Original | original | 0.972 | 90.6 % | 4.4 % | 91.4 % | 87.2 % | 1.8 % |
+| Blurred | original | 0.912 | 78.8 % | 11.8 % | 89.1 % | 75.4 % | 1.6 % |
+| Blurred | recalibrated | 0.912 | 90.4 % | 4.2 % | 91.2 % | 59.4 % | 13.1 % |
+| Half brightness | original | 0.966 | 90.3 % | 8.8 % | 86.9 % | 89.4 % | 2.9 % |
+| Half brightness | recalibrated | 0.966 | 90.6 % | 5.7 % | 91.2 % | 86.9 % | 2.3 % |
+| JPEG quality 20 | original | 0.857 | 67.1 % | 14.9 % | 86.7 % | 66.8 % | 1.0 % |
+| JPEG quality 20 | recalibrated | 0.857 | 90.6 % | 4.2 % | 90.8 % | 38.7 % | 20.7 % |
+
+Worse photos break the promise in the same way a new clinic does (step 7): the photos to decide are no
+longer like the calibration photos. Blur and compression miss both targets. Darkness barely changes the
+ranking (AUROC 0.966) but still shifts the probabilities enough to miss the urgent target. Setting the
+thresholds on equally poor photos brings both targets back every time, as in step 8, and the cost is
+again usefulness: with compressed photos only 39 % of healthy eyes are sent home and 21 % of all eyes
+go to a grader.
+
+*One part of the pipeline changed at a time* ([`results/ablations.csv`](results/ablations.csv)).
+
+| Pipeline | AUROC referable | AUROC urgent | Referable eyes sent home | Urgent eyes referred urgently | Healthy eyes sent home | Referrals per 1,000 |
+|---|---|---|---|---|---|---|
+| As it is (standardise, PCA 100, C = 0.01) | 0.972 | 0.915 | 4.4 % | 91.4 % | 87.2 % | 446 |
+| PCA with 20 components | 0.958 | 0.899 | 5.9 % | 91.0 % | 85.3 % | 427 |
+| PCA with 300 components | 0.973 | 0.909 | 3.6 % | 90.6 % | 85.1 % | 455 |
+| No PCA (all 2,048 features) | 0.973 | 0.912 | 2.8 % | 91.8 % | 83.8 % | 460 |
+| No standardising | 0.965 | 0.917 | 5.0 % | 90.4 % | 87.3 % | 438 |
+| Weaker regularisation (C = 1) | 0.971 | 0.913 | 4.6 % | 90.6 % | 86.9 % | 446 |
+| Half of the training photos | 0.967 | 0.911 | 4.8 % | 90.4 % | 85.6 % | 447 |
+| A tenth of the training photos | 0.954 | 0.877 | 2.8 % | 92.6 % | 75.4 % | 496 |
+
+No single part matters much, and every variant meets both targets, because the guarantee does not
+depend on how good the model is. A weaker model pays in workload instead: with a tenth of the training
+photos (about 290) the rule still keeps its promise, but sends home 75 % of the healthy eyes instead
+of 87 %. PCA with 100 components gives the same ranking as all 2,048 features with a twentieth of the numbers.
+
+*Other targets* ([`results/stricter_target.csv`](results/stricter_target.csv)). The allowed miss rate of each class is alpha.
+
+| alpha | True class in the set | Referable eyes sent home | Urgent eyes referred urgently | Healthy eyes sent home | To a grader | Referrals per 1,000 |
+|---|---|---|---|---|---|---|
+| 20 % | 80.3 % | 2.2 % | 79.7 % | 80.3 % | 9.2 % | 422 |
+| 10 % (ours) | 90.6 % | 4.4 % | 91.4 % | 87.2 % | 1.8 % | 446 |
+| 5 % | 95.4 % | 2.0 % | 95.9 % | 80.6 % | 6.0 % | 453 |
+| 2 % | 98.5 % | 0.4 % | 98.4 % | 36.3 % | 9.6 % | 687 |
+
+The stricter 5 % target is affordable: 95.9 % of urgent eyes are referred urgently and 2.0 % of
+referable eyes are sent home, for 6.0 % of eyes to a grader instead of 1.8 % and about the same number
+of referrals. At 2 % the rule stops being useful: only 36 % of healthy eyes are sent home. (At 20 % the
+sets are so small that many are empty, and an empty set also goes to a grader.)
+
 ## Still to come
 
-The robustness analysis (blur, dark photos, JPEG), the ablations and the stricter 5 % target.
+Whether the photos cluster by grade or by camera (k-means), and the additional work on the camera shortcut.
