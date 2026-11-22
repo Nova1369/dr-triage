@@ -1,0 +1,11 @@
+photos,k,ARI with the clinic,ARI with the referral class,ARI with the DR grade,ARI with the camera,ARI with the camera group
+all three datasets,2,0.211,0.214,0.226,,
+all three datasets,3,0.136,0.256,0.277,,
+all three datasets,5,0.123,0.136,0.165,,
+all three datasets,8,0.118,0.100,0.127,,
+all three datasets,15,0.105,0.052,0.076,,
+APTOS,2,,0.186,0.274,0.270,0.603
+APTOS,3,,0.263,0.384,0.412,0.828
+APTOS,5,,0.136,0.237,0.547,0.671
+APTOS,8,,0.100,0.174,0.419,0.435
+APTOS,15,,0.058,0.101,0.314,0.229

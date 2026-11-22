@@ -73,6 +73,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 11 | `python src/11_more_scores.py` | adds the other scores of the proposal: weighted kappa, Brier score, calibration, and sensitivity, specificity and PPV per class |
 | 12 | `python src/12_change_photos.py` | blurs, darkens and compresses the APTOS crops and computes their features (about 10 minutes) |
 | 13 | `python src/13_robustness.py` | tests the rule on the worse photos, with parts of the pipeline changed, and with other targets (about 3 minutes) |
+| 14 | `python src/14_clusters.py` | groups the photos with k-means and checks whether the groups follow the DR grade or the camera and clinic |
 
 Steps 2, 3 and 12 can be stopped and restarted; steps 2 and 3 take a few minutes each on a laptop.
 
@@ -336,6 +337,34 @@ referable eyes are sent home, for 6.0 % of eyes to a grader instead of 1.8 % and
 of referrals. At 2 % the rule stops being useful: only 36 % of healthy eyes are sent home. (At 20 % the
 sets are so small that many are empty, and an empty set also goes to a grader.)
 
+**Step 14: do the photos group by DR grade, or by camera and clinic?** k-means is given the features and
+nothing else, and puts the photos in k clusters. The adjusted Rand index (ARI) then says what the
+clusters agree with: 1 = exactly, 0 = no better than random groups. All values of k are in
+[`results/clusters.csv`](results/clusters.csv).
+
+| Photos | k | ARI with the clinic | ARI with the referral class | ARI with the DR grade | ARI with the camera (photo size) | ARI with the camera group |
+|---|---|---|---|---|---|---|
+| All three datasets | 3 | 0.136 | 0.256 | 0.276 | | |
+| APTOS | 3 | | 0.263 | 0.384 | 0.412 | **0.828** |
+| APTOS | 5 | | 0.136 | 0.237 | 0.547 | 0.671 |
+
+![The photos on their first two principal components](results/clusters.png)
+
+Inside APTOS the clusters follow the camera, not the disease. With k = 3 the clusters are almost exactly
+the three camera groups of step 10 (ARI 0.828): 1,464 of the 1,612 photos from cameras with mostly
+healthy eyes are in one cluster, and 1,474 of the 1,503 from cameras with mostly sick eyes in another.
+The agreement with the referral class is only 0.263, and part of that is borrowed from the camera,
+because in APTOS the camera and the grade go together. In the chart the second and fourth panels are
+nearly the same picture, while in the third the routine and urgent eyes lie on top of each other.
+
+Across the three datasets the clinic shows as well: 1,728 of the 1,744 Messidor-2 photos fall in one
+cluster and 454 of the 516 IDRiD photos in another. The ARI with the clinic is still low (0.136) only
+because APTOS, with its many cameras, is spread over all three clusters.
+
+So what the frozen network describes first is how a photo was taken. This is why a model trained on
+these features can use the camera as a shortcut (steps 5 and 10) and why it does not carry over to
+another clinic (step 7).
+
 ## Still to come
 
-Whether the photos cluster by grade or by camera (k-means), and the additional work on the camera shortcut.
+The additional work: the camera shortcut, thresholds for each group of photos, and an alarm for a new clinic.
