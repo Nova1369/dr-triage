@@ -139,9 +139,13 @@ ranking of referable eyes drops from an AUROC of 0.972 at APTOS to 0.910 at IDRi
 Messidor-2. Thresholds set at one clinic cannot be carried to another; the next step sets them again
 with a few photos of the new clinic.
 
-The IDRiD row of B4 is also our reproduction of Hasan et al. (2026), experiment E0 of the proposal: they
-report that standard conformal prediction trained on APTOS covers 66 to 77 % of IDRiD photos at a 90 %
-target, and we measure 76.8 % with a different model.
+The IDRiD row of B4 is also our check of Hasan et al. (2026), experiment E0 of the proposal. Trained on
+APTOS with EfficientNet-B0, they report that standard conformal prediction covers 66 to 71 % of IDRiD
+photos at a 90 % target (LAC, RAPS and APS scores; 77 % with their own ordinal score). With ResNet-50
+trained on APTOS, LAC covers 68.4 %. B4 is the same LAC rule on frozen ResNet-50 features with
+logistic regression and covers 76.8 %. We confirm the finding (coverage falls well below the 90 %
+promised at a new clinic); how far it falls depends on the model. They use 455 graded IDRiD photos and
+we use all 516, so the numbers are not directly comparable.
 
 **Step 8: can a few local photos repair it?** The new clinic grades n of its own photos. We compare four
 uses of them, each tested on the clinic's other photos (average of 50 runs); all sizes n = 50 to 300 and
