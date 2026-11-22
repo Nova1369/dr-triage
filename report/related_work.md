@@ -1,8 +1,6 @@
-# Related work
+## Automated DR screening
 
-Every number below was checked against the paper itself (abstract or full text). "Referable" means moderate or worse DR, as in our project.
-
-## DR screening with deep learning
+**Abràmoff et al. (2013)** tested the Iowa Detection Program (IDP) on 874 people with diabetes photographed in primary care clinics in France, with consensus grading by three retinal specialists as the standard. Referable DR (more than mild NPDR and/or macular edema) had a prevalence of 21.7 %. At a predetermined, fixed set point the IDP had sensitivity 96.8 % and specificity 59.4 % (6/874 false negatives, none meeting treatment criteria) and an AUC of 0.937. Before consensus, the three specialists had sensitivity of 0.71 to 0.91 and specificity of 0.95 to 1.00.
 
 **Gulshan et al. (2016)** trained a deep network on 128,175 fundus photos and tested it for referable DR on EyePACS-1 (9,963 photos) and Messidor-2 (1,748 photos). The AUC was 0.991 and 0.990. At the operating point chosen for high sensitivity on the development data, sensitivity was 97.5 % and 96.1 % and specificity 93.4 % and 93.9 %.
 
@@ -16,7 +14,7 @@ Every number below was checked against the paper itself (abstract or full text).
 
 **Vovk (2012)** notes that inductive conformal predictors were known to control only unconditional coverage, and studies several kinds of conditional validity. A conditional version of the method gives label-conditional validity, which controls the set-prediction counterparts of false-positive and false-negative rates. Our one threshold per class is of this kind, and it is what lets us state a guarantee for each referral class.
 
-**Hasan et al. (2026)** is the closest work. They train EfficientNet-B0, ResNet-50 and ViT-Base on APTOS, calibrate split conformal predictors (LAC, APS, RAPS and an ordinal score) on held-out APTOS photos, and test on IDRiD and, with a ViT, Messidor-2. Coverage was about nominal on APTOS but fell on both external sets. For EfficientNet-B0 at the 90 % target, coverage on IDRiD was 0.657 (LAC), 0.669 (RAPS), 0.710 (APS) and 0.766 (their ordinal score); ResNet-50 kept higher coverage. The loss was largest for severe DR (grade 3): 0.302 to 0.431 for the three standard scores. On Messidor-2 (ViT, 90 %) coverage was 0.632 (APS) and 0.676 (ordinal). They conclude that ordinal sets help but do not restore the guarantee. They name label-prior adjustment and shift-aware calibration as future work.
+**Hasan et al. (2026)** is the closest work. They train EfficientNet-B0, ResNet-50 and ViT-Base on APTOS, calibrate split conformal predictors (LAC, APS, RAPS and an ordinal score) on held-out APTOS photos, and test on IDRiD and, with a ViT, Messidor-2. Coverage was about nominal on APTOS but fell on both external sets. At the 90 % target, coverage on IDRiD was 0.657 (LAC), 0.669 (RAPS), 0.710 (APS) and 0.766 (their ordinal score) for EfficientNet-B0, and 0.684 (LAC), 0.723 (RAPS), 0.814 (APS) and 0.858 (ordinal) for ResNet-50. The loss was largest for severe DR (grade 3): 0.302 to 0.431 (EfficientNet-B0) and 0.452 to 0.636 (ResNet-50) for the three standard scores. On Messidor-2 (ViT, 90 %) coverage was 0.632 (APS) and 0.676 (ordinal). They conclude that ordinal sets help but do not restore the guarantee. They name label-prior adjustment and shift-aware calibration as future work.
 *How we differ.* (1) Our guarantee is per referral class, not marginal, and is tied to clinical targets. (2) We do not stop at showing the failure: setting the thresholds again with 50 to 300 labelled local photos brings the coverage back to about 90 % at IDRiD and Messidor-2 in our experiments, without retraining. (3) We forecast the workload at a clinic from unlabeled photos. Our one-threshold baseline gives 76.8 % at IDRiD with a different model.
 
 **Ahamed et al. (2025)** (MICCAI 2025 workshop) study how five training augmentations (none, geometric, CLAHE, Mixup, CutMix) change conformal prediction for DR grading, with ResNet-50 and a CoaT transformer on the DDR dataset. They measure coverage, average set size and a correct-efficiency metric, and find that Mixup and CutMix improve accuracy and give more reliable and efficient uncertainty, while CLAHE can hurt.
@@ -32,6 +30,7 @@ Every number below was checked against the paper itself (abstract or full text).
 
 ## References
 
+- Abràmoff MD, Folk JC, Han DP, et al. Automated analysis of retinal images for detection of referable diabetic retinopathy. *JAMA Ophthalmol* 131(3):351-357, 2013.
 - Gulshan V, et al. Development and validation of a deep learning algorithm for detection of diabetic retinopathy in retinal fundus photographs. *JAMA* 316(22), 2016.
 - Gulshan V, et al. Performance of a deep-learning algorithm vs manual grading for detecting diabetic retinopathy in India. *JAMA Ophthalmol* 137(9), 2019.
 - Abràmoff MD, et al. Improved automated detection of diabetic retinopathy on a publicly available dataset through integration of deep learning. *Invest Ophthalmol Vis Sci* 57(13), 2016.
