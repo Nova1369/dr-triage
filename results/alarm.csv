@@ -1,0 +1,8 @@
+photos to decide,C1 referable eyes sent home %,C1 urgent eyes referred urgently %,C1 meets both targets,classifier AUROC (m = 50),"classifier alarm rings %, m = 10","classifier alarm rings %, m = 20","classifier alarm rings %, m = 50","classifier alarm rings %, m = 100","distance alarm rings %, m = 10","distance alarm rings %, m = 20","distance alarm rings %, m = 50","distance alarm rings %, m = 100"
+"APTOS, fresh photos",4.5,91.4,yes,0.51,1,0,0,0,0,0,0,0
+"APTOS, 5 % referable eyes",3.6,90.5,yes,0.58,2,1,0,0,0,0,0,0
+IDRiD,13.5,87.2,no,0.99,100,100,100,100,26,70,97,100
+Messidor-2,87.1,39.0,no,0.98,100,100,100,100,0,0,0,0
+"APTOS, blurred",11.8,88.5,no,1.00,100,100,100,100,100,100,100,100
+"APTOS, half brightness",8.8,86.9,no,0.88,51,75,100,100,2,4,4,13
+"APTOS, JPEG quality 20",15.3,86.5,no,1.00,100,100,100,100,100,100,100,100

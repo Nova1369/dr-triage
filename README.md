@@ -75,6 +75,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 13 | `python src/13_robustness.py` | tests the rule on the worse photos, with parts of the pipeline changed, and with other targets (about 3 minutes) |
 | 14 | `python src/14_clusters.py` | groups the photos with k-means and checks whether the groups follow the DR grade or the camera and clinic |
 | 15 | `python src/15_camera_shortcut.py` | additional work: tests whether the model uses the camera as a shortcut, and compares five rules that try to keep the promise for each camera group |
+| 16 | `python src/16_new_clinic_alarm.py` | additional work: an alarm that warns, without labels, when a clinic's photos are unlike the calibration photos; and the cameras of Messidor-2 after recalibration (about 4 minutes) |
 
 Steps 2, 3 and 12 can be stopped and restarted; steps 2 and 3 take a few minutes each on a laptop.
 
@@ -416,7 +417,55 @@ What we learn:
   falls back to the threshold of all groups. A guarantee for each group needs enough calibration photos
   of each class in each group, which is the practical limit of this fix.
 
+**Step 16, part B: an alarm for a new clinic.** At Messidor-2 the unchanged rule sends home 87 % of the
+eyes that need a referral (step 7), and nothing warns the clinic, which has no labels when it starts.
+Can the failure be seen without labels? Two alarms get only m photos of the clinic:
+
+* **distance** (the obvious idea): are the clinic's photos farther from the APTOS training photos than
+  the calibration photos are?
+* **classifier** (ours): can a logistic regression tell the clinic's photos from the calibration photos?
+  Scored by cross-validated AUROC (0.5 = cannot tell them apart); the alarm rings at 0.80 or more.
+
+An alarm should ring exactly where the rule misses a target. Share of 200 draws in which it rings; all
+sizes m in [`results/alarm.csv`](results/alarm.csv).
+
+| Photos to decide | C1: referable sent home / urgent referred urgently | Rule holds? | Classifier AUROC | Classifier alarm, m = 10 | m = 50 | Distance alarm, m = 10 | m = 50 |
+|---|---|---|---|---|---|---|---|
+| APTOS, fresh photos | 4.5 % / 91.4 % | yes | 0.51 | 1 % | 0 % | 0 % | 0 % |
+| APTOS, 5 % referable eyes | 3.6 % / 90.5 % | yes | 0.58 | 2 % | 0 % | 0 % | 0 % |
+| IDRiD | 13.5 % / 87.2 % | no | 0.99 | 100 % | 100 % | 26 % | 97 % |
+| Messidor-2 | 87.1 % / 39.0 % | no | 0.98 | 100 % | 100 % | **0 %** | **0 %** |
+| APTOS, blurred | 11.7 % / 88.5 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
+| APTOS, half brightness | 8.8 % / 86.9 % | no | 0.88 | 51 % | 100 % | 2 % | 4 % |
+| APTOS, JPEG quality 20 | 15.3 % / 86.3 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
+
+* **Ten photos without labels are enough** for the classifier alarm at both new clinics and for blurred
+  or compressed photos; dark photos need about 50. It stays silent on fresh APTOS photos.
+* **It does not ring when only the share of sick eyes changes** (AUROC 0.58), which is right: the
+  guarantee holds there (step 9). The alarm reacts to how the photos look, not to how many eyes are sick.
+* **The obvious alarm misses the worst case.** Messidor-2 photos are not far from the APTOS photos; they
+  sit among APTOS's healthy photos (step 14), so a distance sees nothing unusual, while the rule fails
+  completely. Asking "can the two sets be told apart?" is the better question.
+* **Together with steps 8 and 9 this is a procedure for a new clinic:** collect a few photos, run the
+  alarm; if it rings, grade about 300 local photos and set the thresholds again; then forecast the workload.
+
+*After recalibration, are the cameras of the new clinic treated alike?* IDRiD has one camera. Messidor-2
+has three photo sizes ([`results/groups_new_clinics.csv`](results/groups_new_clinics.csv), 300 local photos, 50 runs):
+
+| Rule at Messidor-2 | Referable eyes sent home: 1440 px (32 % referable) | 2240 px (34 %) | 2304 px (12 %) | Urgent referred urgently | Healthy sent home | To a grader |
+|---|---|---|---|---|---|---|
+| C2, one threshold per class | 6.5 % | 6.1 % | 6.8 % | 91.6 % | 15.3 % | 43.4 % |
+| C2, thresholds per camera | 5.7 % | 5.4 % | 5.6 % | 91.0 % | 13.6 % | 46.2 % |
+
+Yes: the three cameras are already treated alike, and thresholds per camera change nothing. The group
+problem of step 15 is not a property of the method. It appears in APTOS because there the camera and the
+grade go together, so it has to be checked at each clinic, and the check costs only the calibration photos.
+
+**Limits of the additional work.** The troubled APTOS cameras have 55 referable eyes, so their numbers
+have wide intervals. Cameras are known only through the photo size. The alarm threshold of 0.80 was
+chosen on these datasets, and the alarm was tried on two clinics and three kinds of worse photos, not on
+a clinic whose photos differ only slightly.
+
 ## Still to come
 
-Part B of the additional work: the same question at IDRiD and Messidor-2, and an alarm that warns when a
-clinic's photos are unlike the calibration photos.
+A saved model, one script that runs every step, and the report.
