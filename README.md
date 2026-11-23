@@ -74,6 +74,7 @@ Run every script from the project folder, in this order. Each one prints a short
 | 12 | `python src/12_change_photos.py` | blurs, darkens and compresses the APTOS crops and computes their features (about 10 minutes) |
 | 13 | `python src/13_robustness.py` | tests the rule on the worse photos, with parts of the pipeline changed, and with other targets (about 3 minutes) |
 | 14 | `python src/14_clusters.py` | groups the photos with k-means and checks whether the groups follow the DR grade or the camera and clinic |
+| 15 | `python src/15_camera_shortcut.py` | additional work: tests whether the model uses the camera as a shortcut, and compares five rules that try to keep the promise for each camera group |
 
 Steps 2, 3 and 12 can be stopped and restarted; steps 2 and 3 take a few minutes each on a laptop.
 
@@ -365,6 +366,57 @@ So what the frozen network describes first is how a photo was taken. This is why
 these features can use the camera as a shortcut (steps 5 and 10) and why it does not carry over to
 another clinic (step 7).
 
+## Additional work (beyond the proposal)
+
+Steps 1 to 14 are what the proposal promised. This section goes further on one question that came out of
+them: **the rule keeps its promise on average, but does it keep it for every group of patients?**
+
+**Step 15, part A: the camera shortcut, and a guarantee for each group.** Step 10 found that on the APTOS
+cameras that photographed mostly healthy eyes, 53 % of the eyes that need a referral are sent home.
+
+*Is the camera a shortcut?* ([`results/camera_shortcut.csv`](results/camera_shortcut.csv))
+
+| Test | Result |
+|---|---|
+| Can the camera be read from the features? (13 cameras, logistic regression) | 94.3 % correct; always guessing the most common camera gives 26.7 % |
+| Average P(no referral) the model gives a grade-2 eye | 0.74 on the mostly-healthy cameras, 0.20 and 0.15 on the others |
+| AUROC for referable eyes | 0.971 over all photos, but 0.910, 0.964 and 0.885 inside the three camera groups |
+
+Yes. The features say which camera took the photo, the model gives the same grade a different
+probability on a different camera, and the model ranks eyes less well inside a camera group than over
+all photos: part of the 0.971 comes from telling cameras apart, not eyes.
+
+*Can the promise be kept for each group?* Five rules, tested with the same folds. To have enough photos
+of the troubled cameras, three folds are used for calibration here, so C1's numbers differ a little
+from step 6. Full table in [`results/group_thresholds.csv`](results/group_thresholds.csv).
+
+| Rule | Referable eyes sent home: mostly-healthy cameras | mixed | mostly-sick | Urgent eyes referred urgently | Healthy eyes sent home | To a grader |
+|---|---|---|---|---|---|---|
+| C1, one threshold per class | **52.7 %** (39.8-65.3) | 4.6 % | 2.7 % | 91.0 % | 87.3 % | 1.9 % |
+| Thresholds per camera group (needs the camera) | 3.6 % (1.0-12.3) | 3.4 % | 3.8 % | 90.4 % | 57.2 % | 20.8 % |
+| **Thresholds per k-means cluster (ours)** | **3.6 %** (1.0-12.3) | 3.8 % | 4.0 % | 90.0 % | 60.2 % | 18.6 % |
+| Model reweighted by cluster and class, then C1 | 0.0 % (0.0-6.5) | 1.1 % | 3.0 % | 90.6 % | 58.4 % | 18.5 % |
+| C1, no eye of the suspicious cluster sent home | 0.0 % (0.0-6.5) | 4.6 % | 2.7 % | 91.0 % | 22.8 % | 41.0 % |
+
+What we learn:
+
+* **The promise can be kept for each group without knowing the camera.** The k-means clusters of step 14
+  match the camera groups (ARI 0.83 on the test folds), and thresholds per cluster do as well as
+  thresholds per known camera group: every group is below 10 %.
+* **The fix has a real price, and the price shows what the shortcut was worth.** Every rule that
+  protects the troubled cameras sends home about 60 % of the healthy eyes instead of 87 %, and passes
+  about 19 % of the eyes to a grader instead of 2 %. C1 sent home 99 % of the healthy eyes of those
+  cameras, mostly by recognising the camera. Part of the usefulness measured on APTOS was the shortcut.
+* **Two different fixes land in the same place.** Changing the thresholds (ours) and retraining the model
+  without the shortcut (reweighting) cost about the same. Ours leaves the model alone, so a clinic can
+  apply it with calibration photos only, as in step 8.
+* **The simple safe rule is much more expensive:** 41 % of the eyes go to a grader.
+* **The evidence is thin where it matters.** The troubled cameras have 55 referable eyes, so 3.6 % is 2
+  eyes and its interval reaches 12.3 %. Their urgent threshold cannot be set at all (15 urgent eyes) and
+  falls back to the threshold of all groups. A guarantee for each group needs enough calibration photos
+  of each class in each group, which is the practical limit of this fix.
+
 ## Still to come
 
-The additional work: the camera shortcut, thresholds for each group of photos, and an alarm for a new clinic.
+Part B of the additional work: the same question at IDRiD and Messidor-2, and an alarm that warns when a
+clinic's photos are unlike the calibration photos.

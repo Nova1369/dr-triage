@@ -1,0 +1,10 @@
+test,where,value,note
+a. camera read from the features,"13 cameras, 3643 photos",accuracy 94.3 %,always guessing the most common camera: 26.7 %
+b. average P(no referral) of grade-2 eyes,cameras: mostly healthy,0.74,40 eyes
+b. average P(no referral) of grade-2 eyes,cameras: mixed,0.20,165 eyes
+b. average P(no referral) of grade-2 eyes,cameras: mostly sick,0.15,794 eyes
+c. AUROC referable,all APTOS photos,0.971,3662 photos
+c. AUROC referable,inside cameras: mostly healthy,0.910,"1612 photos, 55 referable"
+c. AUROC referable,inside cameras: mixed,0.964,"547 photos, 262 referable"
+c. AUROC referable,inside cameras: mostly sick,0.885,"1503 photos, 1170 referable"
+k-means clusters against the camera groups,test folds,ARI 0.83,"lowest fold 0.78, highest 0.88"
