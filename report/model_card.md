@@ -44,12 +44,13 @@ When only the share of sick eyes at a clinic changes, the promise holds (step 9)
 ## Known limits
 
 - The promise is an average over the eyes of a class. It says nothing about one camera, clinic, age group or sex unless the thresholds are set for that group. We did not analyse results by age, sex or ethnicity.
-- Each class needs enough calibration photos. A threshold is infinite below 9 photos of a class. For 95 % of clinics to get at least 85 % coverage, a class needs about 110 calibration photos (68 is the first size where this happens; `extra/calibration_size.py`). The troubled cameras hold only 15 urgent eyes in all of APTOS, too few to set an urgent threshold for them (step 15).
+- Each class needs enough calibration photos. A threshold is infinite below 9 photos of a class. For 95 % of clinics to get at least 85 % coverage, a class needs from 68 calibration photos on, and for every size from 110 on. ; `extra/calibration_size.py`). The troubled cameras hold only 15 urgent eyes in all of APTOS, too few to set an urgent threshold for them (step 15).
 - The promise is paid for with workload. At APTOS the rule makes 446 referrals per 1,000 eyes, and only 34.7 % of its urgent referrals are urgent eyes.
 - It still misses 8.6 % of urgent eyes (42 of 488) on APTOS. These are confident mistakes (median P(urgent) 0.043), not near misses.
 - The frozen network describes how a photo was taken before it describes the disease (step 14). The model ranks eyes poorly at Messidor-2, and the rule then stays safe by being unsure.
 - Only three public datasets, from India and France, were used. There was no prospective study and no clinical or regulatory approval.
-- There is no alarm yet that warns when a clinic's photos are unlike the calibration photos.
+- The alarm of step 16 was tested on two clinics and three kinds of worse photos only.
+
 
 ## References
 
