@@ -81,7 +81,7 @@ def per_class(decision, y):
 # ---- probabilities: APTOS out of fold (with the decision of C1), the two clinics from one all-APTOS model ----
 p = np.zeros((len(label), 3))
 c1 = np.zeros(len(label), dtype=int)
-shares = np.zeros((len(label), 3))                 # B1: the class shares of the training folds, for every photo
+shares = np.zeros((len(label), 3))                 # the class shares of the training folds, for every photo
 for k in range(10):
     test, cal = aptos & (fold == k), aptos & (fold == (k + 1) % 10)
     train = aptos & ~test & ~cal
@@ -94,7 +94,7 @@ p[~aptos] = new_model().fit(features[aptos], label[aptos]).predict_proba(feature
 # ---- the scores ----
 rng = np.random.RandomState(SEED)
 rows, classes = [], []
-places = [("APTOS, B1 class shares only", aptos, shares), ("APTOS", aptos, p),
+places = [("APTOS, class shares only (no photo)", aptos, shares), ("APTOS", aptos, p),
           ("IDRiD", dataset == "idrid", p), ("Messidor-2", dataset == "messidor2", p)]
 for name, here, probabilities in places:
     q, y = probabilities[here], label[here]

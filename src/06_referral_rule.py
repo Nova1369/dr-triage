@@ -10,7 +10,7 @@ How every rule is tested, for each of the 10 folds in turn:
 So every APTOS photo gets one decision from a model and thresholds that never saw it.
 
 The rules:
-  Most likely class   the class with the highest probability
+  B1 most likely      the class with the highest probability
   B0                  the two trivial rules: send everyone home, refer everyone urgently
   B3 tuned            two cut-offs set on the calibration photos so that 90 % of their referable eyes and
                       90 % of their urgent eyes are caught
@@ -68,7 +68,7 @@ def unsure_band(p):
     return decision
 
 
-RULES = ["Most likely class", "B0 send everyone home", "B0 refer everyone urgently", "B3 tuned cut-offs",
+RULES = ["B1 most likely class", "B0 send everyone home", "B0 refer everyone urgently", "B3 tuned cut-offs",
          "B4 one conformal threshold", "B5 unsure band", "C1 one threshold per class (ours)"]
 decisions = {rule: np.zeros(len(y), dtype=int) for rule in RULES}
 in_set = {"B4": np.zeros(len(y), dtype=bool), "C1": np.zeros(len(y), dtype=bool)}   # is the true class in the set?
@@ -80,7 +80,7 @@ for k in range(10):
     cal_p, test_p = model.predict_proba(X[cal]), model.predict_proba(X[test])
     rows = np.arange(test.sum())
 
-    decisions["Most likely class"][test] = most_likely(test_p)
+    decisions["B1 most likely class"][test] = most_likely(test_p)
     decisions["B0 send everyone home"][test] = NO_REFERRAL
     decisions["B0 refer everyone urgently"][test] = URGENT
     decisions["B3 tuned cut-offs"][test] = tuned_decide(test_p, tuned_cutoffs(cal_p, y[cal]))

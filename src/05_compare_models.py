@@ -11,7 +11,7 @@ Every model is tested in the same way on the 3,662 APTOS photos:
     Both are learned on the training folds only.
 
 Two baselines show what a score is worth:
-  B1  predicts the class shares of the training folds for every photo (knows nothing about the photo);
+  class shares  predicts the class shares of the training folds for every photo (knows nothing about the photo);
   B2  gradient boosting on the photo's size, brightness, sharpness and retina fill only: it never looks
       at the retina, so whatever it gets right comes from the camera and the image quality.
 
@@ -113,9 +113,9 @@ for name, (model, grid) in MODELS.items():
     print(f"{name:22s} {rows[-1][1]}   {time.time() - start:4.0f} s", flush=True)
 
 p, _ = out_of_fold(lambda: DummyClassifier(strategy="prior"), X)
-rows.append(["B1 class shares", *scores(p), ""])
+rows.append(["Class shares only (no photo)", *scores(p), ""])
 p, _ = out_of_fold(lambda: HistGradientBoostingClassifier(random_state=SEED), notes)
-rows.append(["B2 photo notes only (no retina)", *scores(p), ""])
+rows.append(["B2 photo size, brightness, sharpness only (no retina)", *scores(p), ""])
 
 result = pd.DataFrame(rows, columns=["model", "AUROC referable", "AUROC urgent", "accuracy", "setting chosen most often"])
 result = result.sort_values("AUROC referable", ascending=False)

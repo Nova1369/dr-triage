@@ -3,13 +3,13 @@
 Step 7 showed that thresholds set at APTOS do not keep their promise at another clinic. Suppose the new
 clinic can grade a small number n of its own photos. What is the best use of them?
 
-  C1  ignore them: APTOS model, APTOS thresholds (step 7)
+  B6  no recalibration: APTOS model, APTOS thresholds (the rule C1 of step 7, unchanged)
   C2  recalibrate (ours): keep the APTOS model, set the thresholds again on the n local photos
-  B6  retrain: add the n local photos to the training photos, keep thresholds from APTOS calibration photos
-  B7  retrain and recalibrate: add half of the local photos to the training photos,
+  B7  retrain: add the n local photos to the training photos, keep thresholds from APTOS calibration photos
+  RR  retrain and recalibrate (not in the proposal): add half of the local photos to the training photos,
       set the thresholds on the other half
 
-Only C2 and B7 set thresholds on photos of the new clinic, so only they carry the 90 % guarantee there.
+Only C2 and RR set thresholds on photos of the new clinic, so only they carry the 90 % guarantee there.
 
 How it is tested, for n = 50, 100, 200, 300 and each new clinic (IDRiD, Messidor-2):
   * the 10 APTOS models and calibration folds are the ones of steps 6 and 7,
@@ -33,8 +33,8 @@ SEED = 42
 SIZES = [50, 100, 200, 300]                                       # n: local photos the clinic grades
 DRAWS = 5                                                         # random draws of the local photos per APTOS model
 CLINICS = {"idrid": "IDRiD", "messidor2": "Messidor-2"}
-RULES = {"C1": "C1 APTOS model, APTOS thresholds", "C2": "C2 recalibrated on local photos (ours)",
-         "B6": "B6 retrained with local photos", "B7": "B7 retrained and recalibrated, half each"}
+RULES = {"B6": "B6 no recalibration (APTOS model, APTOS thresholds)", "C2": "C2 recalibrated on local photos (ours)",
+         "B7": "B7 retrained with local photos", "RR": "RR retrained and recalibrated, half each"}
 MEASURES = ["true class in the set %", "no referral in its set %", "routine in its set %", "urgent in its set %",
             "referable eyes sent home % (target <= 10)", "urgent eyes referred urgently % (target >= 90)",
             "to a grader %", "referrals per 1,000 eyes"]
@@ -84,21 +84,21 @@ for k in range(10):
             for _ in range(DRAWS):
                 local, rest = draw_local(clinic, n, rng)
                 y = label[rest]
-                # C1: nothing changes.   C2: same model, thresholds from the local photos.
-                runs[(clinic, n, "C1")].append(measures(prediction_sets(p_aptos_model[rest], aptos_thresholds), y))
+                # B6: nothing changes.   C2: same model, thresholds from the local photos.
+                runs[(clinic, n, "B6")].append(measures(prediction_sets(p_aptos_model[rest], aptos_thresholds), y))
                 local_thresholds = class_thresholds(p_aptos_model[local], label[local], ALPHA)
                 runs[(clinic, n, "C2")].append(measures(prediction_sets(p_aptos_model[rest], local_thresholds), y))
-                # B6: all local photos join the training photos; thresholds from the APTOS calibration fold.
+                # B7: all local photos join the training photos; thresholds from the APTOS calibration fold.
                 both = np.concatenate([train, local])
                 model = new_model().fit(features[both], label[both])
                 thresholds = class_thresholds(model.predict_proba(features[cal]), label[cal], ALPHA)
-                runs[(clinic, n, "B6")].append(measures(prediction_sets(model.predict_proba(features[rest]), thresholds), y))
-                # B7: half of the local photos join the training photos; thresholds from the other half.
+                runs[(clinic, n, "B7")].append(measures(prediction_sets(model.predict_proba(features[rest]), thresholds), y))
+                # RR: half of the local photos join the training photos; thresholds from the other half.
                 half, other = local[: n // 2], local[n // 2:]
                 both = np.concatenate([train, half])
                 model = new_model().fit(features[both], label[both])
                 thresholds = class_thresholds(model.predict_proba(features[other]), label[other], ALPHA)
-                runs[(clinic, n, "B7")].append(measures(prediction_sets(model.predict_proba(features[rest]), thresholds), y))
+                runs[(clinic, n, "RR")].append(measures(prediction_sets(model.predict_proba(features[rest]), thresholds), y))
     print(f"APTOS model {k + 1} of 10 done", flush=True)
 
 rows = []

@@ -1,5 +1,5 @@
 rule,referable eyes sent home % (target <= 10),urgent eyes referred urgently % (target >= 90),healthy eyes sent home %,to a grader %,"referrals per 1,000 eyes",meets both targets
-Most likely class,11.7 (10.0-13.4),51.0 (46.8-55.4),93.4,0.0,398,no
+B1 most likely class,11.7 (10.0-13.4),51.0 (46.8-55.4),93.4,0.0,398,no
 B0 send everyone home,100.0 (100.0-100.0),0.0 (0.0-0.0),100.0,0.0,0,no
 B0 refer everyone urgently,0.0 (0.0-0.0),100.0 (100.0-100.0),0.0,0.0,1000,yes
 B3 tuned cut-offs,9.0 (7.6-10.5),87.9 (85.1-90.9),91.0,0.0,423,no
