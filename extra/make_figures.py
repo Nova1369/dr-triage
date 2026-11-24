@@ -1,4 +1,19 @@
+"""Draws the report figures from the CSVs in results/ and saves them to figures/.
+
+Run from anywhere:   python extra/make_figures.py
+Reads only results/*.csv. Writes only figures/*.png.
+
+Figures
+  1 sent_home_by_group.png            sent-home rate per camera group, with intervals   (errors_by_group.csv)
+  2 recalibration_by_clinic.png       the four recalibration rules, one column per clinic (recalibration.csv)
+  3 referrals_vs_referable_share.png  referrals per 1,000 and the forecasts              (fewer_sick_eyes.csv, workload_forecast.csv)
+  4 cost_of_alpha.png                 what each alpha costs                              (stricter_target.csv)
+  5 robustness.png                    worse photos, original vs recalibrated thresholds  (robustness.csv)
+  6 ablations.png                     one part of the pipeline changed at a time         (ablations.csv)
+  7 rules_by_camera_group.png         the five rules of step 15 per camera group         (group_thresholds.csv)
+"""
 import re
+import textwrap
 from pathlib import Path
 
 import matplotlib
@@ -12,6 +27,11 @@ OUT = ROOT / "figures"
 OUT.mkdir(exist_ok=True)
 
 NUMBER = re.compile(r"\d+(?:\.\d+)?")
+
+SENT = "referable eyes sent home % (target <= 10)"
+URGENT = "urgent eyes referred urgently % (target >= 90)"
+HEALTHY = "healthy eyes sent home %"
+GRADER = "to a grader %"
 
 
 def first(cell):
@@ -40,7 +60,7 @@ def read(name, columns):
 
 def save(fig, name):
     fig.tight_layout()
-    fig.savefig(OUT / f"{name}.png", dpi=200)
+    fig.savefig(OUT / f"{name}.png", dpi=200, bbox_inches="tight")
     plt.close(fig)
     print("saved", OUT / f"{name}.png")
 
@@ -52,6 +72,9 @@ def fig_groups():
     d = df[df["grouped by"] == "camera group"]
     if d.empty:
         raise SystemExit(f"No 'camera group' rows. Values of 'grouped by': {sorted(df['grouped by'].unique())}")
+    order = ["mostly healthy", "mixed", "mostly sick"]
+    if set(order) == set(d["group"]):
+        d = d.set_index("group").loc[order].reset_index()
     parsed = [with_interval(x) for x in d[rate_col]]
     value = pd.Series([p[0] for p in parsed], index=d.index)
     low = pd.Series([p[1] for p in parsed], index=d.index)
@@ -74,13 +97,11 @@ def fig_groups():
 
 # Figure 2: the four recalibration rules against the number of local photos, one panel per clinic
 def fig_recalibration():
-    sent = "referable eyes sent home % (target <= 10)"
-    urgent = "urgent eyes referred urgently % (target >= 90)"
-    df = read("recalibration", ["clinic", "local photos", "rule", sent, urgent])
+    df = read("recalibration", ["clinic", "local photos", "rule", SENT, URGENT])
     clinics = list(dict.fromkeys(df["clinic"]))
     rules = list(dict.fromkeys(df["rule"]))
-    metrics = [(sent, "Referable eyes sent home (%)", 10, "target: at most 10 %"),
-               (urgent, "Urgent eyes referred urgently (%)", 90, "target: at least 90 %")]
+    metrics = [(SENT, "Referable eyes sent home (%)", 10, "target: at most 10 %"),
+               (URGENT, "Urgent eyes referred urgently (%)", 90, "target: at least 90 %")]
 
     fig, axes = plt.subplots(2, len(clinics), figsize=(4.6 * len(clinics), 7), sharex=True, squeeze=False)
     for j, clinic in enumerate(clinics):
@@ -146,26 +167,22 @@ def fig_workload():
 # Figure 4: what each alpha costs -------------------------------------------------------------------
 def fig_alpha():
     a = "allowed miss rate alpha %"
-    sent = "referable eyes sent home % (target <= 10)"
-    urgent = "urgent eyes referred urgently % (target >= 90)"
-    healthy = "healthy eyes sent home %"
-    grader = "to a grader %"
     refs = "referrals per 1,000 eyes"
-    df = read("stricter_target", [a, sent, urgent, healthy, grader, refs])
+    df = read("stricter_target", [a, SENT, URGENT, HEALTHY, GRADER, refs])
     df = df.assign(_a=[first(x) for x in df[a]]).sort_values("_a")
     x = df["_a"]
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4))
     ax = axes[0]
-    ax.plot(x, df[sent], "o-", label="Referable eyes sent home")
-    ax.plot(x, df[urgent], "s-", label="Urgent eyes referred urgently")
+    ax.plot(x, df[SENT], "o-", label="Referable eyes sent home")
+    ax.plot(x, df[URGENT], "s-", label="Urgent eyes referred urgently")
     ax.axhline(10, linestyle="--", color="C0", linewidth=1)
     ax.axhline(90, linestyle="--", color="C1", linewidth=1)
     ax.set_ylabel("%")
     ax.set_title("Safety (dashed: the 10 % and 90 % targets)")
     ax = axes[1]
-    ax.plot(x, df[healthy], "o-", label="Healthy eyes sent home")
-    ax.plot(x, df[grader], "s-", label="Eyes sent to a grader")
+    ax.plot(x, df[HEALTHY], "o-", label="Healthy eyes sent home")
+    ax.plot(x, df[GRADER], "s-", label="Eyes sent to a grader")
     ax.set_ylabel("%")
     ax.set_title("Usefulness")
     ax = axes[2]
@@ -180,8 +197,111 @@ def fig_alpha():
     save(fig, "cost_of_alpha")
 
 
+# Figure 5: worse photos, with the thresholds from the original photos and set again --------------------
+def fig_robustness():
+    key = "thresholds set on photos that are"
+    df = read("robustness", ["test photos", key, SENT, URGENT, HEALTHY, GRADER])
+    conditions = list(dict.fromkeys(df["test photos"]))
+    styles = [("original", "Thresholds from the original photos", "C0"),
+              ("changed in the same way", "Thresholds set again on photos changed in the same way", "C1")]
+    panels = [(SENT, "Referable eyes sent home (%)", 10, "target: at most 10 %"),
+              (URGENT, "Urgent eyes referred urgently (%)", 90, "target: at least 90 %"),
+              (HEALTHY, "Healthy eyes sent home (%)", None, None),
+              (GRADER, "Eyes sent to a grader (%)", None, None)]
+    width = 0.38
+
+    fig, axes = plt.subplots(2, 2, figsize=(11, 7.5))
+    for ax, (column, title, target, target_label) in zip(axes.flat, panels):
+        for j, (thresholds, label, color) in enumerate(styles):
+            xs, ys = [], []
+            for i, condition in enumerate(conditions):
+                row = df[(df["test photos"] == condition) & (df[key] == thresholds)]
+                if row.empty:           # the original photos have no 'set again' row
+                    continue
+                single = (df["test photos"] == condition).sum() == 1
+                xs.append(i if single else i + (j - 0.5) * width)      # a lone bar is centred
+                ys.append(float(row[column].iloc[0]))
+            container = ax.bar(xs, ys, width, color=color, label=label)
+            ax.bar_label(container, fmt="%.1f", fontsize=7)
+        if target is not None:
+            ax.axhline(target, linestyle="--", color="grey", linewidth=1, label=target_label)
+        if column in (URGENT, HEALTHY):
+            ax.set_ylim(0, 105)
+        ax.set_xticks(range(len(conditions)))
+        ax.set_xticklabels([c[0].upper() + c[1:] for c in conditions])
+        ax.set_title(title)
+    axes[0][0].legend(fontsize=7, loc="upper left")
+    fig.suptitle("Worse photos: the promise breaks, and setting the thresholds again repairs it at a price")
+    save(fig, "robustness")
+
+
+# Figure 6: one part of the pipeline changed at a time ---------------------------------------------------
+def fig_ablations():
+    df = read("ablations", ["pipeline", SENT, URGENT, HEALTHY, GRADER])
+    labels = ["\n".join(textwrap.wrap(p, 30)) for p in df["pipeline"]]
+    positions = list(range(len(df)))
+    panels = [(SENT, "Referable eyes sent home (%)", 10),
+              (URGENT, "Urgent eyes referred urgently (%)", 90),
+              (HEALTHY, "Healthy eyes sent home (%)", None),
+              (GRADER, "Eyes sent to a grader (%)", None)]
+
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4.8), sharey=True)
+    for ax, (column, title, target) in zip(axes, panels):
+        colors = ["C1"] + ["C0"] * (len(df) - 1)          # the first row is the pipeline as it is
+        container = ax.barh(positions, df[column], color=colors)
+        ax.bar_label(container, fmt="%.1f", fontsize=7, padding=2)
+        if target is not None:
+            ax.axvline(target, linestyle="--", color="grey", linewidth=1)
+        if column in (URGENT, HEALTHY):
+            ax.set_xlim(0, 105)
+        else:
+            ax.set_xlim(0, max(df[column].max() * 1.2, (target or 0) * 1.2))
+        ax.set_title(title, fontsize=10)
+    axes[0].set_yticks(positions)
+    axes[0].set_yticklabels(labels, fontsize=8)
+    axes[0].invert_yaxis()
+    fig.suptitle("One part of the pipeline changed at a time (orange: the pipeline as it is; dashed: target)")
+    save(fig, "ablations")
+
+
+# Figure 7: the five rules of step 15, sent-home rate per camera group, with intervals ------------------------
+def fig_rules_by_group():
+    groups = [("mostly healthy", "sent home %, cameras mostly healthy (95 % interval)"),
+              ("mixed", "sent home %, cameras mixed (95 % interval)"),
+              ("mostly sick", "sent home %, cameras mostly sick (95 % interval)")]
+    df = read("group_thresholds", ["rule"] + [c for _, c in groups])
+
+    counts = {}                                           # referable eyes per camera group, for the axis labels
+    try:
+        eg = pd.read_csv(RESULTS / "errors_by_group.csv", encoding="utf-8-sig")
+        eg = eg[eg["grouped by"] == "camera group"]
+        counts = {g: int(n) for g, n in zip(eg["group"], eg["referable eyes"])}
+    except (FileNotFoundError, KeyError, ValueError):
+        pass
+
+    rules = list(df["rule"])
+    width = 0.8 / len(rules)
+    fig, ax = plt.subplots(figsize=(9.5, 5.2))
+    for k, rule in enumerate(rules):
+        for g, (name, column) in enumerate(groups):
+            value, low, high = with_interval(df[column].iloc[k])
+            x = g + (k - (len(rules) - 1) / 2) * width
+            yerr = None if low != low else [[value - low], [high - value]]       # low != low: no interval
+            ax.errorbar(x, value, yerr=yerr, fmt="o", color=f"C{k}", capsize=3, label=rule if g == 0 else None)
+    ax.axhline(10, linestyle="--", color="grey", linewidth=1)
+    ax.text(len(groups) - 0.55, 10.8, "target: at most 10 %", ha="right", fontsize=8, color="grey")
+    ax.set_xticks(range(len(groups)))
+    ax.set_xticklabels([f"{name}\n({counts[name]} referable eyes)" if name in counts else name for name, _ in groups])
+    ax.set_xlim(-0.5, len(groups) - 0.5)
+    ax.set_ylim(bottom=0)
+    ax.set_xlabel("Camera group")
+    ax.set_ylabel("Referable eyes sent home (%)")
+    ax.set_title("Sent-home rate by camera group for the five rules (95 % intervals)")
+    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=8)
+    save(fig, "rules_by_camera_group")
+
+
 if __name__ == "__main__":
-    fig_groups()
-    fig_recalibration()
-    fig_workload()
-    fig_alpha()
+    for figure in (fig_groups, fig_recalibration, fig_workload, fig_alpha,
+                   fig_robustness, fig_ablations, fig_rules_by_group):
+        figure()
