@@ -1,8 +1,8 @@
 test photos,thresholds set on photos that are,AUROC referable,AUROC urgent,true class in the set %,referable eyes sent home % (target <= 10),urgent eyes referred urgently % (target >= 90),healthy eyes sent home %,to a grader %,"referrals per 1,000 eyes"
-original,original,0.972,0.915,90.6,4.4,91.2,87.2,1.8,446
-blurred,original,0.912,0.844,78.8,11.8,88.9,75.3,1.6,489
-blurred,changed in the same way,0.912,0.844,90.4,4.2,91.2,59.4,13.1,500
+original,original,0.972,0.915,90.6,4.4,91.4,87.2,1.8,446
+blurred,original,0.912,0.844,78.8,11.8,88.9,75.4,1.6,489
+blurred,changed in the same way,0.912,0.844,90.4,4.2,91.2,59.3,13.1,500
 half brightness,original,0.966,0.913,90.2,8.9,86.7,89.4,2.9,404
 half brightness,changed in the same way,0.966,0.913,90.6,5.8,91.2,86.9,2.3,437
-JPEG quality 20,original,0.857,0.783,67.1,15.0,86.5,66.8,1.1,532
+JPEG quality 20,original,0.857,0.783,67.2,14.9,86.7,66.8,1.0,532
 JPEG quality 20,changed in the same way,0.857,0.783,90.6,4.2,90.8,38.6,20.8,546

@@ -40,9 +40,9 @@ for name in CHANGES:
 y, fold = table["label"][aptos].to_numpy(), table["fold"][aptos].to_numpy()
 
 
-def pipeline(pca=100, standardise=True, C=0.01):
+def pipeline(pca=100, standardise=True, C=0.01, max_iter=2000):
     steps = ([StandardScaler()] if standardise else []) + ([PCA(pca, random_state=SEED)] if pca else [])
-    return make_pipeline(*steps, LogisticRegression(C=C, max_iter=5000))
+    return make_pipeline(*steps, LogisticRegression(C=C, max_iter=max_iter))
 
 
 def measures(p, sets):
@@ -62,7 +62,8 @@ def out_of_fold(make_model, test_photos="original", calibration_photos="original
     for k in range(10):
         test, cal = fold == k, fold == (k + 1) % 10
         train = np.flatnonzero(~test & ~cal)
-        train = rng.permutation(train)[: int(keep * len(train))]              # keep < 1: fewer training photos
+        if keep < 1:                                                          # fewer training photos, drawn at random
+            train = rng.permutation(train)[: int(keep * len(train))]
         model = make_model().fit(X["original"][train], y[train])
         p[test] = model.predict_proba(X[test_photos][test])
         thresholds = class_thresholds(model.predict_proba(X[calibration_photos][cal]), y[cal], alpha)
@@ -83,9 +84,9 @@ print("1. Worse photos\n" + robustness.T.to_string(header=False), flush=True)
 variants = {"the pipeline as it is (standardise, PCA 100, C = 0.01)": {},
             "PCA with 20 components": {"make_model": lambda: pipeline(pca=20)},
             "PCA with 300 components": {"make_model": lambda: pipeline(pca=300)},
-            "no PCA (all 2,048 features)": {"make_model": lambda: pipeline(pca=None)},
+            "no PCA (all 2,048 features)": {"make_model": lambda: pipeline(pca=None, max_iter=5000)},
             "no standardising": {"make_model": lambda: pipeline(standardise=False)},
-            "weaker regularisation (C = 1)": {"make_model": lambda: pipeline(C=1)},
+            "weaker regularisation (C = 1)": {"make_model": lambda: pipeline(C=1, max_iter=5000)},
             "half of the training photos": {"keep": 0.5},
             "a tenth of the training photos": {"keep": 0.1}}
 rows = []
