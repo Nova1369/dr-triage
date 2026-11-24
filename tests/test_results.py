@@ -111,7 +111,7 @@ def test_step8_recalibration():
     columns = [TRUE_CLASS, SENT, URGENT, GRADER, REFERRALS]
     problems = []
     for row in find_table("| Clinic | Rule |", "| To a grader |"):
-        code = row[1].split()[0]                           # C1, C2, B6 or B7
+        code = row[1].split()[0]                           # B6, C2, B7 or RR
         match = df[(df["clinic"] == row[0]) & (df["local photos"] == 300) & df["rule"].str.startswith(code)]
         if len(match) != 1:
             problems.append(f"step 8 | {row[0]} {code}: found {len(match)} rows with 300 local photos")
