@@ -57,6 +57,7 @@ https://github.com/huggingface/pytorch-image-models/releases/download/v0.1-weigh
 ## Steps
 
 Run every script from the project folder, in this order. Each one prints a short summary of what it did.
+`bash run_all.sh` runs all of them (about 50 minutes); `bash run_all.sh 5` starts again from step 5.
 
 | Step | Command | What it does |
 |---|---|---|
@@ -76,10 +77,11 @@ Run every script from the project folder, in this order. Each one prints a short
 | 14 | `python src/14_clusters.py` | groups the photos with k-means and checks whether the groups follow the DR grade or the camera and clinic |
 | 15 | `python src/15_camera_shortcut.py` | additional work: tests whether the model uses the camera as a shortcut, and compares five rules that try to keep the promise for each camera group |
 | 16 | `python src/16_new_clinic_alarm.py` | additional work: an alarm that warns, without labels, when a clinic's photos are unlike the calibration photos; and the cameras of Messidor-2 after recalibration (about 4 minutes) |
+| 17 | `python src/17_save_model.py` | trains the final model, sets its thresholds and saves it as plain arrays in `models/referral_rule.npz` |
 
 Steps 2, 3 and 12 can be stopped and restarted; steps 2 and 3 take a few minutes each on a laptop.
 
-## Results so far
+## Results
 
 **Step 5: which model reads the features best?** 3,662 APTOS photos, 10-fold nested cross-validation;
 full table with 95 % intervals in [`results/models.csv`](results/models.csv).
@@ -466,6 +468,51 @@ have wide intervals. Cameras are known only through the photo size. The alarm th
 chosen on these datasets, and the alarm was tried on two clinics and three kinds of worse photos, not on
 a clinic whose photos differ only slightly.
 
-## Still to come
+## Using the saved model
 
-A saved model, one script that runs every step, and the report.
+```bash
+python src/decide.py datasets/aptos/train_images/000c1434d8d7.png
+```
+
+`src/decide.py` takes one or more photos through the whole pipeline (crop, ResNet-50 features, saved
+model, prediction set) and prints the decision:
+
+```
+6fb656d506b2.png:  P(no referral) = 0.00, P(routine) = 0.42, P(urgent) = 0.58   set = {routine, urgent}   ->   URGENT REFERRAL
+```
+
+The model is saved as seven arrays of numbers (0.8 MB), not as a Python object: the means and scales of
+the standardising, the principal components, the coefficients of the logistic regression and the three
+thresholds. `decide.py` applies them with numpy only, and step 17 checks that this gives the same
+probabilities as scikit-learn. The thresholds were set at APTOS; at another clinic they must be set
+again (steps 7, 8 and 16).
+
+## Reproducibility
+
+* **Versions.** Python 3.13 and the pinned packages of `requirements.txt`. The ResNet-50 weights are
+  checked by their SHA-256 (see Setup).
+* **Randomness.** Every script that draws random numbers uses the fixed seed 42 (folds, PCA, bootstrap
+  resamples, draws of local photos, k-means starts). Running a script twice gives the same table.
+* **What can differ between computers.** The ResNet-50 features (step 3) can differ in the last decimals
+  with another processor or PyTorch build, and with them the later numbers, in the last digit shown.
+  With another scikit-learn version the third decimal of a threshold can change.
+* **Data.** The photos, crops and features are not in the repository (dataset licences); steps 1 to 4
+  rebuild them from the downloaded datasets. Every table and chart in `results/` is written by the
+  step named in the tables above.
+* **No leakage.** Copies of the same photo are kept in the same fold (step 4). Scaling, PCA and the model
+  are fitted on training folds only; thresholds are set on a calibration fold that is never used for
+  training or testing; IDRiD and Messidor-2 are never used to train or tune the APTOS model.
+* **Run times** on a laptop (MacBook Pro, CPU only): steps 2 and 3 a few minutes each, step 5 about 15
+  minutes, step 8 about 8, step 12 about 10, steps 13 and 16 about 3 to 4 each, every other step under a minute.
+* **Tests.** `python -m pytest tests/ -v` checks the conformal rule on made-up numbers.
+
+## What is where
+
+| Folder | Contents |
+|---|---|
+| `src/` | the numbered steps, the rule (`conformal.py`) and `decide.py` |
+| `results/` | every table and chart quoted above |
+| `models/` | the saved model |
+| `tests/` | tests of the conformal rule |
+| `extra/`, `figures/` | figures for the report, drawn from `results/` |
+| `report/` | related work |
