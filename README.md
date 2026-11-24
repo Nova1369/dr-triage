@@ -100,7 +100,7 @@ full table with 95 % intervals in [`results/models.csv`](results/models.csv).
 | B2: photo size, brightness, sharpness only | 0.921 | 0.782 | 0.725 |
 | Decision tree | 0.908 | 0.821 | 0.721 |
 | Naive Bayes | 0.839 | 0.790 | 0.645 |
-| B1: class shares | 0.494 | 0.492 | 0.594 |
+| Class shares only (no photo) | 0.494 | 0.492 | 0.594 |
 
 Logistic regression, LDA and the SVM are within each other's intervals; we carry logistic regression
 forward because it is the simplest. B2 never sees the retina and still reaches 0.921: in APTOS, the
@@ -112,7 +112,7 @@ thresholds that never saw it; full table in [`results/referral_rule.csv`](result
 
 | Rule | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | Healthy eyes sent home | To a grader | Referrals per 1,000 |
 |---|---|---|---|---|---|
-| Most likely class | 11.7 % | 51.0 % | 93.4 % | 0 % | 398 |
+| B1 most likely class | 11.7 % | 51.0 % | 93.4 % | 0 % | 398 |
 | B3 tuned cut-offs | 9.0 % | 87.9 % | 91.0 % | 0 % | 423 |
 | B4 one conformal threshold | 6.6 % | 69.7 % | 89.2 % | 8.5 % | 358 |
 | B5 unsure band | 7.9 % | 39.3 % | 90.8 % | 14.3 % | 286 |
@@ -131,10 +131,10 @@ lowest and highest round in [`results/new_clinics.csv`](results/new_clinics.csv)
 |---|---|---|---|---|---|
 | APTOS (home) | B4 one conformal threshold | 90.3 % | 6.6 % | 69.7 % | 358 |
 | APTOS (home) | C1 one threshold per class | 90.6 % | 4.4 % | 91.4 % | 446 |
-| IDRiD | B4 one conformal threshold | 76.8 % | 16.8 % | 58.2 % | 391 |
+| IDRiD | B4 one conformal threshold | 76.8 % | 16.9 % | 58.3 % | 391 |
 | IDRiD | C1 one threshold per class | 82.2 % | 13.6 % | 87.0 % | 578 |
-| Messidor-2 | B4 one conformal threshold | 75.3 % | 91.8 % | 19.2 % | 17 |
-| Messidor-2 | C1 one threshold per class | 76.3 % | 87.1 % | 38.8 % | 44 |
+| Messidor-2 | B4 one conformal threshold | 75.3 % | 91.8 % | 19.4 % | 17 |
+| Messidor-2 | C1 one threshold per class | 76.3 % | 87.1 % | 38.9 % | 44 |
 
 No. The 90 % of conformal prediction holds only when the new photos are like the calibration photos, and
 at a new clinic they are not. At IDRiD both rules slip below their targets. At Messidor-2 the rule
@@ -158,19 +158,19 @@ the spread of the runs are in [`results/recalibration.csv`](results/recalibratio
 
 | Clinic | Rule | True class in the set (promised: 90 %) | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | To a grader | Referrals per 1,000 |
 |---|---|---|---|---|---|---|
-| IDRiD | C1 nothing changed | 82.1 % | 13.6 % | 87.1 % | 5.5 % | 578 |
+| IDRiD | B6 no recalibration (C1 of step 7, unchanged) | 82.1 % | 13.6 % | 87.1 % | 5.5 % | 578 |
 | IDRiD | **C2 thresholds set again on local photos (ours)** | **90.5 %** | **5.7 %** | **90.3 %** | 20.8 % | 553 |
-| IDRiD | B6 model retrained with the local photos | 82.4 % | 6.8 % | 96.6 % | 3.3 % | 690 |
-| IDRiD | B7 half to retrain, half to set thresholds | 91.4 % | 4.8 % | 91.6 % | 20.7 % | 566 |
-| Messidor-2 | C1 nothing changed | 76.2 % | 87.1 % | 38.4 % | 0.2 % | 44 |
-| Messidor-2 | **C2 thresholds set again on local photos (ours)** | **90.2 %** | **6.4 %** | **92.2 %** | 45.4 % | 411 |
-| Messidor-2 | B6 model retrained with the local photos | 80.1 % | 46.8 % | 71.6 % | 8.2 % | 202 |
-| Messidor-2 | B7 half to retrain, half to set thresholds | 90.8 % | 2.8 % | 95.6 % | 19.3 % | 740 |
+| IDRiD | B7 model retrained with the local photos | 82.4 % | 6.8 % | 96.6 % | 3.3 % | 690 |
+| IDRiD | RR half to retrain, half to set thresholds (not in the proposal) | 91.4 % | 4.8 % | 91.6 % | 20.7 % | 566 |
+| Messidor-2 | B6 no recalibration (C1 of step 7, unchanged) | 76.2 % | 87.1 % | 38.5 % | 0.1 % | 44 |
+| Messidor-2 | **C2 thresholds set again on local photos (ours)** | **90.2 %** | **6.5 %** | **92.2 %** | 45.4 % | 411 |
+| Messidor-2 | B7 model retrained with the local photos | 80.1 % | 46.8 % | 71.6 % | 8.1 % | 202 |
+| Messidor-2 | RR half to retrain, half to set thresholds (not in the proposal) | 90.8 % | 2.8 % | 95.6 % | 19.3 % | 740 |
 
 Yes. Setting the thresholds again on local photos brings the 90 % back at both clinics and for every n
-we tried, and both targets are met on average, without touching the model. Retraining alone (B6) does
+we tried, and both targets are met on average, without touching the model. Retraining alone (B7) does
 not: 300 local photos among 2,900 APTOS photos barely move the model, and at Messidor-2 it still sends
-home 47 % of the eyes that need a referral. B7 also keeps the promise, because it too sets its
+home 47 % of the eyes that need a referral. RR also keeps the promise, because it too sets its
 thresholds on local photos, but it needs a new model for every clinic.
 
 The guarantee does not make the model better, and the cost shows in the workload. At Messidor-2, where
@@ -258,9 +258,9 @@ slightly different threshold would not have caught them.
 
 | Photos from | Accuracy | Quadratic weighted kappa | Brier score | ECE of P(referable) | ECE of P(urgent) |
 |---|---|---|---|---|---|
-| APTOS, B1 class shares only | 0.594 | 0.000 | 0.555 | 0.000 | 0.000 |
-| APTOS | 0.822 | 0.781 | 0.247 | 0.014 | 0.016 |
-| IDRiD | 0.624 | 0.627 | 0.503 | 0.122 | 0.133 |
+| APTOS, class shares only (no photo) | 0.594 | 0.000 | 0.555 | 0.000 | 0.000 |
+| APTOS | 0.823 | 0.781 | 0.247 | 0.014 | 0.016 |
+| IDRiD | 0.624 | 0.627 | 0.502 | 0.122 | 0.133 |
 | Messidor-2 | 0.744 | 0.150 | 0.466 | 0.219 | 0.047 |
 
 ![Calibration of the model at the three clinics](results/calibration.png)
@@ -270,19 +270,20 @@ are referable (ECE 0.014). At the new clinics they cannot. Both curves lie above
 model gives sick eyes too low a risk, most of all at Messidor-2. Messidor-2 also shows why accuracy
 alone misleads: 74 % of its photos are classified correctly because 74 % of its eyes are healthy and the
 model calls nearly every eye healthy. The kappa of 0.150 says the agreement is barely better than
-chance. (B1 has a calibration error of zero and is useless: calibration and ranking are different things.)
+chance. (The class shares alone have a calibration error of zero and are useless: calibration and ranking are
+different things.)
 
 Sensitivity, specificity and PPV of each class, in percent ([`results/per_class.csv`](results/per_class.csv)):
 
 | Photos from | Decision by | No referral | Routine | Urgent |
 |---|---|---|---|---|
-| APTOS | most likely class | 93.4 / 88.3 / 92.1 | 73.1 / 87.3 / 68.3 | 51.0 / 95.6 / 64.2 |
-| APTOS | C1 (ours) | 87.2 / 95.6 / 96.6 | 24.2 / 95.9 / 69.1 | 91.4 / 73.6 / 34.7 |
+| APTOS | most likely class | 93.4 / 88.3 / 92.1 | 73.3 / 87.3 / 68.4 | 51.0 / 95.7 / 64.3 |
+| APTOS | C1 (ours) | 87.2 / 95.6 / 96.6 | 24.3 / 95.9 / 69.2 | 91.4 / 73.6 / 34.8 |
 | IDRiD | most likely class | 94.8 / 72.4 / 67.3 | 50.0 / 73.3 / 47.5 | 35.5 / 96.7 / 82.1 |
 | Messidor-2 | most likely class | 99.8 / 5.5 / 74.8 | 0.0 / 99.3 / 0.0 | 12.7 / 99.8 / 77.8 |
 
 The row of C1 shows what the guarantee buys and what it costs. The sensitivity for urgent eyes rises
-from 51.0 % to 91.4 %, and a "no referral" from C1 is right 96.6 % of the time. In exchange only 34.7 %
+from 51.0 % to 91.4 %, and a "no referral" from C1 is right 96.6 % of the time. In exchange only 34.8 %
 of its urgent referrals are urgent eyes, because most grade-2 eyes are referred urgently to be safe.
 
 **Step 13: worse photos, a simpler pipeline, a stricter target.** All on APTOS, tested as in step 6.
@@ -295,12 +296,12 @@ thresholds on calibration photos that are worse in the same way. Full table in
 | Photos to decide | Thresholds | AUROC referable | True class in the set (promised 90 %) | Referable eyes sent home (target at most 10 %) | Urgent eyes referred urgently (target at least 90 %) | Healthy eyes sent home | To a grader |
 |---|---|---|---|---|---|---|---|
 | Original | original | 0.972 | 90.6 % | 4.4 % | 91.4 % | 87.2 % | 1.8 % |
-| Blurred | original | 0.912 | 78.8 % | 11.8 % | 89.1 % | 75.4 % | 1.6 % |
-| Blurred | recalibrated | 0.912 | 90.4 % | 4.2 % | 91.2 % | 59.4 % | 13.1 % |
-| Half brightness | original | 0.966 | 90.3 % | 8.8 % | 86.9 % | 89.4 % | 2.9 % |
-| Half brightness | recalibrated | 0.966 | 90.6 % | 5.7 % | 91.2 % | 86.9 % | 2.3 % |
-| JPEG quality 20 | original | 0.857 | 67.1 % | 14.9 % | 86.7 % | 66.8 % | 1.0 % |
-| JPEG quality 20 | recalibrated | 0.857 | 90.6 % | 4.2 % | 90.8 % | 38.7 % | 20.7 % |
+| Blurred | original | 0.912 | 78.8 % | 11.8 % | 88.9 % | 75.4 % | 1.6 % |
+| Blurred | recalibrated | 0.912 | 90.4 % | 4.2 % | 91.2 % | 59.3 % | 13.1 % |
+| Half brightness | original | 0.966 | 90.2 % | 8.9 % | 86.7 % | 89.4 % | 2.9 % |
+| Half brightness | recalibrated | 0.966 | 90.6 % | 5.8 % | 91.2 % | 86.9 % | 2.3 % |
+| JPEG quality 20 | original | 0.857 | 67.2 % | 14.9 % | 86.7 % | 66.8 % | 1.0 % |
+| JPEG quality 20 | recalibrated | 0.857 | 90.6 % | 4.2 % | 90.8 % | 38.6 % | 20.8 % |
 
 Worse photos break the promise in the same way a new clinic does (step 7): the photos to decide are no
 longer like the calibration photos. Blur and compression miss both targets. Darkness barely changes the
@@ -316,10 +317,10 @@ go to a grader.
 | As it is (standardise, PCA 100, C = 0.01) | 0.972 | 0.915 | 4.4 % | 91.4 % | 87.2 % | 446 |
 | PCA with 20 components | 0.958 | 0.899 | 5.9 % | 91.0 % | 85.3 % | 427 |
 | PCA with 300 components | 0.973 | 0.909 | 3.6 % | 90.6 % | 85.1 % | 455 |
-| No PCA (all 2,048 features) | 0.973 | 0.912 | 2.8 % | 91.8 % | 83.8 % | 460 |
-| No standardising | 0.965 | 0.917 | 5.0 % | 90.4 % | 87.3 % | 438 |
+| No PCA (all 2,048 features) | 0.973 | 0.911 | 2.9 % | 92.0 % | 83.7 % | 460 |
+| No standardising | 0.965 | 0.917 | 5.0 % | 90.4 % | 87.4 % | 437 |
 | Weaker regularisation (C = 1) | 0.971 | 0.913 | 4.6 % | 90.6 % | 86.9 % | 446 |
-| Half of the training photos | 0.967 | 0.911 | 4.8 % | 90.4 % | 85.6 % | 447 |
+| Half of the training photos | 0.967 | 0.911 | 4.8 % | 90.4 % | 85.6 % | 448 |
 | A tenth of the training photos | 0.954 | 0.877 | 2.8 % | 92.6 % | 75.4 % | 496 |
 
 No single part matters much, and every variant meets both targets, because the guarantee does not
@@ -331,7 +332,7 @@ of 87 %. PCA with 100 components gives the same ranking as all 2,048 features wi
 
 | alpha | True class in the set | Referable eyes sent home | Urgent eyes referred urgently | Healthy eyes sent home | To a grader | Referrals per 1,000 |
 |---|---|---|---|---|---|---|
-| 20 % | 80.3 % | 2.2 % | 79.7 % | 80.3 % | 9.2 % | 422 |
+| 20 % | 80.4 % | 2.2 % | 79.7 % | 80.3 % | 9.1 % | 422 |
 | 10 % (ours) | 90.6 % | 4.4 % | 91.4 % | 87.2 % | 1.8 % | 446 |
 | 5 % | 95.4 % | 2.0 % | 95.9 % | 80.6 % | 6.0 % | 453 |
 | 2 % | 98.5 % | 0.4 % | 98.4 % | 36.3 % | 9.6 % | 687 |
@@ -348,7 +349,7 @@ clusters agree with: 1 = exactly, 0 = no better than random groups. All values o
 
 | Photos | k | ARI with the clinic | ARI with the referral class | ARI with the DR grade | ARI with the camera (photo size) | ARI with the camera group |
 |---|---|---|---|---|---|---|
-| All three datasets | 3 | 0.136 | 0.256 | 0.276 | | |
+| All three datasets | 3 | 0.136 | 0.256 | 0.277 | | |
 | APTOS | 3 | | 0.263 | 0.384 | 0.412 | **0.828** |
 | APTOS | 5 | | 0.136 | 0.237 | 0.547 | 0.671 |
 
@@ -395,11 +396,11 @@ from step 6. Full table in [`results/group_thresholds.csv`](results/group_thresh
 
 | Rule | Referable eyes sent home: mostly-healthy cameras | mixed | mostly-sick | Urgent eyes referred urgently | Healthy eyes sent home | To a grader |
 |---|---|---|---|---|---|---|
-| C1, one threshold per class | **52.7 %** (39.8-65.3) | 4.6 % | 2.7 % | 91.0 % | 87.3 % | 1.9 % |
+| C1, one threshold per class | **52.7 %** (39.8-65.3) | 4.6 % | 2.7 % | 91.0 % | 87.4 % | 1.8 % |
 | Thresholds per camera group (needs the camera) | 3.6 % (1.0-12.3) | 3.4 % | 3.8 % | 90.4 % | 57.2 % | 20.8 % |
 | **Thresholds per k-means cluster (ours)** | **3.6 %** (1.0-12.3) | 3.8 % | 4.0 % | 90.0 % | 60.2 % | 18.6 % |
-| Model reweighted by cluster and class, then C1 | 0.0 % (0.0-6.5) | 1.1 % | 3.0 % | 90.6 % | 58.4 % | 18.5 % |
-| C1, no eye of the suspicious cluster sent home | 0.0 % (0.0-6.5) | 4.6 % | 2.7 % | 91.0 % | 22.8 % | 41.0 % |
+| Model reweighted by cluster and class, then C1 | 0.0 % (0.0-6.5) | 1.1 % | 3.0 % | 90.6 % | 58.4 % | 18.6 % |
+| C1, no eye of the suspicious cluster sent home | 0.0 % (0.0-6.5) | 4.6 % | 2.7 % | 91.0 % | 22.9 % | 40.9 % |
 
 What we learn:
 
@@ -437,9 +438,9 @@ sizes m in [`results/alarm.csv`](results/alarm.csv).
 | APTOS, 5 % referable eyes | 3.6 % / 90.5 % | yes | 0.58 | 2 % | 0 % | 0 % | 0 % |
 | IDRiD | 13.5 % / 87.2 % | no | 0.99 | 100 % | 100 % | 26 % | 97 % |
 | Messidor-2 | 87.1 % / 39.0 % | no | 0.98 | 100 % | 100 % | **0 %** | **0 %** |
-| APTOS, blurred | 11.7 % / 88.5 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
+| APTOS, blurred | 11.8 % / 88.5 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
 | APTOS, half brightness | 8.8 % / 86.9 % | no | 0.88 | 51 % | 100 % | 2 % | 4 % |
-| APTOS, JPEG quality 20 | 15.3 % / 86.3 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
+| APTOS, JPEG quality 20 | 15.3 % / 86.5 % | no | 1.00 | 100 % | 100 % | 100 % | 100 % |
 
 * **Ten photos without labels are enough** for the classifier alarm at both new clinics and for blurred
   or compressed photos; dark photos need about 50. It stays silent on fresh APTOS photos.
@@ -456,8 +457,8 @@ has three photo sizes ([`results/groups_new_clinics.csv`](results/groups_new_cli
 
 | Rule at Messidor-2 | Referable eyes sent home: 1440 px (32 % referable) | 2240 px (34 %) | 2304 px (12 %) | Urgent referred urgently | Healthy sent home | To a grader |
 |---|---|---|---|---|---|---|
-| C2, one threshold per class | 6.5 % | 6.1 % | 6.8 % | 91.6 % | 15.3 % | 43.4 % |
-| C2, thresholds per camera | 5.7 % | 5.4 % | 5.6 % | 91.0 % | 13.6 % | 46.2 % |
+| C2, one threshold per class | 6.5 % | 6.1 % | 6.8 % | 91.7 % | 15.3 % | 43.4 % |
+| C2, thresholds per camera | 5.7 % | 5.4 % | 5.6 % | 91.1 % | 13.6 % | 46.2 % |
 
 Yes: the three cameras are already treated alike, and thresholds per camera change nothing. The group
 problem of step 15 is not a property of the method. It appears in APTOS because there the camera and the
@@ -467,6 +468,21 @@ grade go together, so it has to be checked at each clinic, and the check costs o
 have wide intervals. Cameras are known only through the photo size. The alarm threshold of 0.80 was
 chosen on these datasets, and the alarm was tried on two clinics and three kinds of worse photos, not on
 a clinic whose photos differ only slightly.
+
+## Changes from the proposal
+
+The poster named the experiments (E0 to E3), the contributions (C1 to C3) and the baselines (B0 to B9).
+The code and the tables use the same names. What was done differently, and why:
+
+| Proposal | Done | Why |
+|---|---|---|
+| Crops of 512 pixels | 224 pixels | the input size the ResNet-50 was trained on; features of all 5,922 photos in minutes on a laptop |
+| 15 % of APTOS held out for calibration | in each of the 10 rounds, one fold (10 %) for calibration | every photo is tested once and the calibration photos change from round to round |
+| Recalibration with k = 10 to 200 local photos | n = 50 to 300 | below 9 photos of a class a threshold cannot be set; Messidor-2 needs 200 to 300 (step 8) |
+| E2: one model trained on all of APTOS, 200 repeats | the 10 fold models, 5 draws each (50 runs) | the same models as in steps 6 and 7, so the steps can be compared |
+| "66 to 77 %" coverage in Hasan et al. | 66 to 71 % for the standard scores | 77 % is their own ordinal score (corrected under step 7) |
+| B7: retrain on the k images | B7 as proposed, plus RR (retrain and recalibrate) | RR shows that what repairs the promise is where the thresholds are set, not the retraining |
+| Fairness by site, image quality and grade | done (step 10), and extended in the additional work | the camera finding of step 10 needed its own study |
 
 ## Using the saved model
 
