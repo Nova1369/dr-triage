@@ -1,0 +1,60 @@
+% Written by report/make_commit_table.py from git log. Do not edit by hand.
+\begin{table*}[t]\centering
+\begin{minipage}[t]{0.495\textwidth}\centering\scriptsize
+\begin{tabular}{@{}r@{\hspace{3pt}}l@{\hspace{3pt}}l@{\hspace{3pt}}l@{\hspace{3pt}}p{0.53\linewidth}@{}}\toprule
+\# & Commit & By & Date & Message\\\midrule
+1 & \texttt{28b0c75} & Swayam & 12 Nov 18:09 & Project setup: README, requirements, .gitignore\\
+2 & \texttt{cf9906e} & Swayam & 12 Nov 18:09 & Step 1: one table of all photos with grade and referral class\\
+3 & \texttt{f651a8a} & Swayam & 12 Nov 18:10 & Step 2: crop photos to the retina and resize to 224 px\\
+4 & \texttt{3e2af60} & Swayam & 12 Nov 18:10 & Step 3: ResNet-50 features for every photo\\
+5 & \texttt{bde8749} & Swayam & 12 Nov 18:10 & Step 4: find copies of the same photo and make 10 folds\\
+6 & \texttt{c113820} & Swayam & 13 Nov 17:44 & Step 5: compare the course's models with nested cross-validation\\
+7 & \texttt{ad2a54b} & Swayam & 13 Nov 17:44 & Model comparison results; README: step 5 and results so far\\
+8 & \texttt{d80d411} & Swayam & 13 Nov 17:44 & The conformal referral rule in its own file, with a self-check\\
+9 & \texttt{35d5bec} & Swayam & 14 Nov 11:18 & Step 6: the referral rule on APTOS against simpler rules\\
+10 & \texttt{27dc994} & Swayam & 14 Nov 11:18 & Referral rule results; README: step 6\\
+11 & \texttt{c1287d7} & Swayam & 14 Nov 20:29 & Step 7: the APTOS rule, unchanged, at IDRiD and Messidor-2\\
+12 & \texttt{2d86b09} & Swayam & 14 Nov 20:29 & New-clinic results; README: step 7\\
+13 & \texttt{10e484d} & Swayam & 15 Nov 12:06 & Step 8: recalibrate with a few local photos, against retraining\\
+14 & \texttt{b60378c} & Swayam & 15 Nov 12:06 & Recalibration results; README: step 8\\
+15 & \texttt{fa79f9b} & Swayam & 16 Nov 22:12 & Step 9: the rule at clinics with fewer sick eyes, and a workload forecast\\
+16 & \texttt{20e1ee9} & Swayam & 16 Nov 22:12 & Fewer-sick-eyes results; README: step 9\\
+17 & \texttt{6aa9385} & Swayam & 17 Nov 22:48 & Step 10: the rule's errors by grade, camera and sharpness\\
+18 & \texttt{1d7b5a6} & Swayam & 17 Nov 22:48 & Error analysis results; README: step 10\\
+19 & \texttt{ba291dc} & Swayam & 20 Nov 20:20 & Step 11: kappa, Brier score, calibration and per-class scores\\
+20 & \texttt{58d7b9d} & Swayam & 20 Nov 20:20 & More scores and calibration chart; README: step 11 and the E0 reproduction\\
+21 & \texttt{f7a0fb0} & Swayam & 21 Nov 19:19 & Step 12: features of blurred, dark and compressed photos\\
+22 & \texttt{6bac5c7} & Swayam & 21 Nov 19:19 & Step 13: robustness, ablations and other targets\\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.495\textwidth}\centering\scriptsize
+\begin{tabular}{@{}r@{\hspace{3pt}}l@{\hspace{3pt}}l@{\hspace{3pt}}l@{\hspace{3pt}}p{0.53\linewidth}@{}}\toprule
+\# & Commit & By & Date & Message\\\midrule
+23 & \texttt{10e7a18} & Swayam & 21 Nov 19:19 & Robustness, ablation and target results; README: steps 12 and 13\\
+24 & \texttt{4087296} & Sahil & 21 Nov 23:35 & Add pytest tests for the conformal rule\\
+25 & \texttt{82e0509} & Sahil & 21 Nov 23:44 & Add report figures script and figures\\
+26 & \texttt{40155f7} & Sahil & 22 Nov 23:34 & Fix the pytest version in requirements.txt\\
+27 & \texttt{3c04263} & Sahil & 22 Nov 23:43 & Add related work\\
+28 & \texttt{cbe02ad} & Swayam & 22 Nov 23:50 & README: correct the comparison with Hasan et al. (E0)\\
+29 & \texttt{4fef8f4} & Swayam & 23 Nov 00:01 & Step 14: k-means clusters against grade, camera and clinic\\
+30 & \texttt{95d529a} & Swayam & 23 Nov 00:02 & Cluster results and chart; README: step 14\\
+31 & \texttt{acee9a7} & Swayam & 23 Nov 13:41 & Additional work, step 15: the camera shortcut and thresholds per group\\
+32 & \texttt{ac30ccd} & Swayam & 23 Nov 13:41 & Camera shortcut results; README: additional work, part A\\
+33 & \texttt{96066d9} & Sahil & 23 Nov 17:35 & Related work: Messidor-2 note, baseline comparison, small-sample caveat\\
+34 & \texttt{4864b36} & Swayam & 24 Nov 02:38 & Additional work, step 16: an alarm for a new clinic\\
+35 & \texttt{f364b3c} & Swayam & 24 Nov 02:38 & Alarm results; README: additional work, part B\\
+36 & \texttt{bea642a} & Swayam & 24 Nov 11:28 & Step 17: the saved model, and decide.py for single photos\\
+37 & \texttt{2b492c5} & Swayam & 24 Nov 11:28 & run\_all.sh; README: saved model, reproducibility, layout\\
+38 & \texttt{d19bad0} & Sahil & 24 Nov 18:50 & Add robustness, ablation and group figures, calibration size, model card, results check\\
+39 & \texttt{e3f7064} & Sahil & 24 Nov 23:38 & Model card: the alarm of step 16, clearer class size\\
+40 & \texttt{6b2c5a2} & Swayam & 25 Nov 00:16 & Baseline names matched to the proposal (B1, B6, B7; RR is new)\\
+41 & \texttt{3a646d7} & Swayam & 25 Nov 00:16 & Step 13: shuffle the training photos only when fewer are used\\
+42 & \texttt{51fe886} & Swayam & 25 Nov 00:16 & README: names and numbers matched to the tables, changes from the proposal; model card wording\\
+43 & \texttt{402a906} & Sahil & 25 Nov 00:21 & Figures redrawn with the final baseline names\\
+44 & \texttt{2905464} & Sahil & 25 Nov 01:16 & Model card numbers matched to the final tables\\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\caption{Commit history of the repository up to the writing of this report (branch \texttt{main}, 2026, times in IST): the 44 commits that change files. 8 further commits change no file and are not listed.}\label{tab:commits}
+\end{table*}
